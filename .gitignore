@@ -1,3 +1,7 @@
+# sys
+*.DS_Store
+*.idea
+
 # Prerequisites
 *.d
 
