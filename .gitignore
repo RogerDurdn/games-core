@@ -1,6 +1,8 @@
 # sys
 *.DS_Store
 *.idea
+cmake-build-debug
+bin
 
 # Prerequisites
 *.d
