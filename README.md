@@ -7,7 +7,8 @@ The project is intended to be a starting point for learning game development wit
 ## Tech Stack
 
 **Language:** C++
-**Multimedia-lib:** SFML++
+
+**Multimedia-lib:** SFML
 
 
 ## Demo
