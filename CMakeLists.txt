@@ -9,21 +9,21 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")
 include_directories(${SFML_INCLUDE_DIRS})
 find_package(SFML 2.5 COMPONENTS system window graphics network audio REQUIRED)
 
-set(runners
+set(targets
         lecture2
         lecture3
         lecture4
         one
 )
 
-set(targets
+set(files
         src_lectures/lecture2.cpp
         src_lectures/lecture3.cpp
         src_lectures/lecture4.cpp
         src_assignments/one/one.cpp
 )
 
-foreach(runner target IN ZIP_LISTS runners targets)
-    add_executable(${runner} ${target} )
-    target_link_libraries(${runner} sfml-system sfml-window sfml-graphics sfml-audio sfml-network)
+foreach(target file IN ZIP_LISTS targets files)
+    add_executable(${target} ${file} )
+    target_link_libraries(${target} sfml-system sfml-window sfml-graphics sfml-audio sfml-network)
 endforeach()
