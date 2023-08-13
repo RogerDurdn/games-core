@@ -1,10 +1,8 @@
 #include <iostream>
 
-using namespace std;
-
 
 void printInfo(int &i) {
-    cout << "address:" << &i << " value:" << i << " size:" << sizeof i << endl;
+    std::cout << "address:" << &i << " value:" << i << " size:" << sizeof i << std::endl;
 }
 
 void allocate() {
@@ -51,11 +49,11 @@ public:
     IntArray(size_t size)
             : m_arr(new int[size]),
               m_size(size) {
-        cout << "arr constructor" << endl;
+        std::cout << "arr constructor" << std::endl;
     }
     ~IntArray(){
         delete []m_arr;
-        cout << "array destructor"<<endl;
+        std::cout << "array destructor"<<std::endl;
     }
 
     void set(size_t index, int value) const {
@@ -68,7 +66,7 @@ public:
 
     void print() const {
         for (size_t i = 0; i < m_size; ++i) {
-            cout << i << " " << m_arr[i] << endl;
+            std::cout << i << " " << m_arr[i] << std::endl;
         }
     }
 };
@@ -83,11 +81,11 @@ public:
     GenericArray(size_t size)
             : m_arr(new T[size]),
               m_size(size) {
-        cout << "generic arr constructor" << endl;
+        std::cout << "generic arr constructor" << std::endl;
     }
     ~GenericArray(){
         delete []m_arr;
-        cout << "generic array destructor"<<endl;
+        std::cout << "generic array destructor"<<std::endl;
     }
 
     void set(size_t index, T value) const {
@@ -100,7 +98,7 @@ public:
 
     void print() const {
         for (size_t i = 0; i < m_size; ++i) {
-            cout << i << " " << m_arr[i] << endl;
+            std::cout << i << " " << m_arr[i] << std::endl;
         }
     }
 };
@@ -115,11 +113,11 @@ public:
     GenOperatorOverloadingArr(size_t size)
             : m_arr(new T[size]),
               m_size(size) {
-        cout << "generic operator arr constructor" << endl;
+        std::cout << "generic operator arr constructor" << std::endl;
     }
     ~GenOperatorOverloadingArr(){
         delete []m_arr;
-        cout << "generic operator array destructor"<<endl;
+        std::cout << "generic operator array destructor"<<std::endl;
     }
 
     // c++ allow us to have 2 functions that differs on the const constraint
@@ -135,7 +133,7 @@ public:
 
     void print() const {
         for (size_t i = 0; i < m_size; ++i) {
-            cout << i << " " << m_arr[i] << endl;
+            std::cout << i << " " << m_arr[i] << std::endl;
         }
     }
 };
@@ -151,12 +149,12 @@ void usingARII(){
     floatArray.set(3, 99.99);
     floatArray.print();
 
-    GenericArray<string> stringArray(5);
+    GenericArray<std::string> stringArray(5);
     stringArray.set(1, "hello");
     stringArray.set(3, "generics");
     stringArray.print();
 
-    GenOperatorOverloadingArr<string> operatorArr(5);
+    GenOperatorOverloadingArr<std::string> operatorArr(5);
     operatorArr[0] = "hello";
     operatorArr.print();
 

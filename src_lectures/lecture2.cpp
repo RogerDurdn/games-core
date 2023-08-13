@@ -2,7 +2,6 @@
 #include <vector>
 #include <fstream>
 
-using namespace std;
 //namespace can be used to incorporate that syntax without the need of prefix
 
 // practice of different concepts
@@ -15,15 +14,15 @@ void classes();
 void studentsFile();
 
 class Student {
-    string m_first = "First";
-    string m_last = "Last";
+    std::string m_first = "First";
+    std::string m_last = "Last";
     int m_id = 0;
     float m_avg = 0;
 
 public:
     Student() {}
 
-    Student(string first, string last, int id, float avg)
+    Student(std::string first, std::string last, int id, float avg)
             : m_first(first), m_last(last), m_id(id), m_avg(avg) {
     }
 
@@ -36,31 +35,31 @@ public:
     }
 
     void print() const {
-        cout << "student: " << m_first << " " << m_last << " id:" << m_id << " avg:" << m_avg << endl;
+        std::cout << "student: " << m_first << " " << m_last << " id:" << m_id << " avg:" << m_avg << std::endl;
     }
 
 };
 
 class Course {
-    string m_name = "course";
-    vector<Student> m_students;
+    std::string m_name = "course";
+    std::vector<Student> m_students;
 public:
     Course() {}
 
-    Course(const string &name)
+    Course(const std::string &name)
             : m_name(name) {}
 
     void addStudent(const Student &s) {
         m_students.push_back(s);
     }
 
-    const vector<Student> &getStudents() const {
+    const std::vector<Student> &getStudents() const {
         return m_students;
     }
 
-    void loadFromFile(const string &fileName) {
-        ifstream fileIn(fileName);
-        string first, last;
+    void loadFromFile(const std::string &fileName) {
+        std::ifstream fileIn(fileName);
+        std::string first, last;
         int id;
         float avg;
 
@@ -71,7 +70,7 @@ public:
     }
 
     void print() const {
-        cout << "course students " << m_name << endl;
+        std::cout << "course students " << m_name << std::endl;
         for (const auto s: m_students) s.print();
     }
 
@@ -82,8 +81,8 @@ int main() {
 
 //    strings();
 //    vectors();
-//    classes();
-    studentsFile();
+    classes();
+//    studentsFile();
     return 0;
 }
 
@@ -95,20 +94,20 @@ void studentsFile() {
 
 void strings() {
     int age = 30;
-    string first = "roger";
-    cout << "hey im: " << first << " and have age of " << age << endl;
+    std::string first = "roger";
+    std::cout << "hey im: " << first << " and have age of " << age << std::endl;
 }
 
 void vectors() {
-    cout << "vectors" << endl;
-    vector<int> intVec;
+    std::cout << "vectors" << std::endl;
+    std::vector<int> intVec;
 
     intVec.push_back(10);
     intVec.push_back(11);
     intVec.push_back(22);
 
 
-    vector<float> floatVec;
+    std::vector<float> floatVec;
 
     floatVec.push_back(10.1f);
     floatVec.push_back(11.2f);
@@ -116,14 +115,14 @@ void vectors() {
 
     // iterate by index
     for (size_t i = 0; i < intVec.size(); ++i) // we should use size_t because size() returns this type
-        cout << "by index - vec val:" << i << endl;
+        std::cout << "by index - vec val:" << i << std::endl;
 
     // iterate by range
     for (int intVal: intVec)
-        cout << "by range - vec vala:" << intVal << endl;
+        std::cout << "by range - vec vala:" << intVal << std::endl;
 
     for (auto val: floatVec) { // we can use auto to delegate the type inference to te compiler
-        cout << "by range auto - vec vala:" << val << endl;
+        std::cout << "by range auto - vec vala:" << val << std::endl;
     }
 }
 
