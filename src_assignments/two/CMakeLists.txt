@@ -1,5 +1,10 @@
 cmake_minimum_required(VERSION 3.26)
 project(second_assignment)
+add_subdirectory(test)
+
+add_library(src_lib
+        Vec2.cpp
+)
 
 # system
 set(CMAKE_CXX_STANDARD 17)

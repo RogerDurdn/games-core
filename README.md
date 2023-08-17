@@ -10,6 +10,8 @@ The project is intended to be a starting point for learning game development wit
 
 **Multimedia-lib:** SFML
 
+**Testing-lib:** [Gogle test](https://github.com/google/googletest)
+
 
 ## Demo
 
