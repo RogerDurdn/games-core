@@ -61,8 +61,8 @@ void Game::run() {
         if(!m_paused){
             m_entities.update();
 //        sEnemySpawner();
-            sCollision();
             sMovement();
+            sCollision();
 //            m_currentFrame++;
         }
         sUserInput();
@@ -201,12 +201,17 @@ void Game::sCollision() {
 //  be sure to use the collision radius, NOT the shape radius
 
 // player collision with window bounds
-    auto playerPosition = m_player->cShape->circle.getPosition();
-    if (playerPosition.x < 0 || playerPosition.y < 0) {
-        std::cout <<"player pos x:"<<playerPosition.x << " y:"<<playerPosition.y<< std::endl;
-        m_player->cTransform->velocity = Vec2(0, 0);
-    }
+    auto windowSize = Vec2(m_window.getSize().x, m_window.getSize().y);
+    auto playerPos = m_player->cTransform->pos;
+    auto playerRadPos = Vec2(m_playerConfig.CR, m_playerConfig.CR);
+    auto playerPositionLhs = playerPos - playerRadPos;
+    auto playerPositionRhs = playerPos + playerRadPos;
 
+    if (playerPositionLhs.x < 0) playerPos.x = playerRadPos.x;
+    if (playerPositionLhs.y < 0) playerPos.y = playerRadPos.y;
+    if (playerPositionRhs.x > windowSize.x) playerPos.x = windowSize.x - playerRadPos.x;
+    if (playerPositionRhs.y > windowSize.y) playerPos.y = windowSize.y - playerRadPos.y;
+    m_player->cTransform->pos = playerPos;
 }
 
 void Game::spawnPlayer() {
