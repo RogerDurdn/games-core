@@ -1,55 +1,60 @@
 #include "Vec2.h"
-#include "math.h"
+#include <cmath>
 
-Vec2::Vec2(){
+Vec2::Vec2(){}
 
-}
-
-Vec2::Vec2(float xin, float yin):x(xin), y(yin) {
-}
+Vec2::Vec2(float xin, float yin):x(xin), y(yin) {}
 
 bool Vec2::operator==(const Vec2 &rhs) const {
-    return false;
+    return rhs.x == x && rhs.y == y;
 }
 
 bool Vec2::operator!=(const Vec2 &rhs) const {
-    return false;
+    return !operator==(rhs);
 }
 
 Vec2 Vec2::operator+(const Vec2 &rhs) const {
-    return Vec2(this->x+rhs.x, this->y+rhs.y);
+    return Vec2(x+rhs.x, y+rhs.y);
 }
 
-bool Vec2::operator-(const Vec2 &rhs) const {
-    return false;
+Vec2 Vec2::operator-(const Vec2 &rhs) const {
+    return Vec2(x-rhs.x,y-rhs.y);
 }
 
-bool Vec2::operator/(const float val) const {
-    return false;
+Vec2 Vec2::operator/(const float val) const {
+    return Vec2(x/val,y/val);
 }
 
-bool Vec2::operator*(const float val) const {
-    return false;
+Vec2 Vec2::operator*(const float val) const {
+    return Vec2(x*val,y*val);
 }
 
-bool Vec2::operator+=(const Vec2 &rhs) {
-    return false;
+void Vec2::operator+=(const Vec2 &rhs) {
+   x+=rhs.x;
+   y+=rhs.y;
 }
 
-bool Vec2::operator-=(const Vec2 &rhs) {
-    return false;
+void Vec2::operator-=(const Vec2 &rhs) {
+    x-=rhs.x;
+    y-=rhs.y;
 }
 
-bool Vec2::operator*=(const float val) {
-    return false;
+void Vec2::operator*=(const float val) {
+    x *= val;
+    y *= val;
 }
 
-bool Vec2::operator/=(const float val) {
-    return false;
+void Vec2::operator/=(const float val) {
+    x /= val;
+    y /= val;
+}
+
+// TODO: testing
+float Vec2::distSqr(const Vec2 &rhs) const {
+    Vec2 d(rhs.x - x, rhs.y - y);
+    return (d.x * d.x) + (d.y * d.y);
 }
 
 float Vec2::dist(const Vec2 &rhs) const {
-    return 0;
+    return std::sqrt(this->distSqr(rhs));
 }
-
-

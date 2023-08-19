@@ -23,12 +23,13 @@ class Game {
     sf::Font m_font;
     sf::Text m_text;
     PlayerConfig m_playerConfig;
-    EnemyConfig m_enemyCongig;
+    EnemyConfig m_enemyConfig;
     BulletConfig m_bulletConfig;
     int m_score = 0;
     int m_currentFrame = 0;
     int m_lastEneymySpawnTime = 0;
     bool m_paused = false;
+    bool m_running = true;
 
     std::shared_ptr<Entity> m_player;
 
@@ -46,6 +47,9 @@ class Game {
     void spawnSmallEnemies(std::shared_ptr<Entity> entity);
     void spawnBullet(std::shared_ptr<Entity> entity, const Vec2 & mosePos);
     void spawnSpecialWeapon(std::shared_ptr<Entity> entity);
+
+    void handlePressedReleasedKeys(sf::Event event, bool flag);
+    void handlePressedMouseKeys(sf::Event event);
 
 public:
     Game(const std::string &config);

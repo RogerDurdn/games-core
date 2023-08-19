@@ -1,10 +1,7 @@
-#include <iostream>
-#include <SFML/Graphics.hpp>
 #include "Game.h"
+#include <cstdlib>
 
-int main(){
-    std::cout <<"hello\n";
-    Game g("config.txt");
-
+int main() {
+    Game g(std::getenv("CONFIG_PATH"));
     g.run();
 }

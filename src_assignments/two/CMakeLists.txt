@@ -18,5 +18,6 @@ add_executable(shape_game main.cpp
         Vec2.cpp
         Game.cpp
         Components.h
-        Entity.cpp)
+        Entity.cpp
+        EntityManager.cpp)
 target_link_libraries(shape_game sfml-system sfml-window sfml-graphics sfml-audio sfml-network)
