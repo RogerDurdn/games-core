@@ -55,6 +55,16 @@ float Vec2::distSqr(const Vec2 &rhs) const {
     return (d.x * d.x) + (d.y * d.y);
 }
 
-float Vec2::dist(const Vec2 &rhs) const {
-    return std::sqrt(this->distSqr(rhs));
+Vec2 Vec2::normalize(const Vec2 &rhs) const{
+    auto d = dist(rhs);
+    auto l = d.length();
+    return Vec2(d.x/l, d.y/l);
+}
+
+float Vec2::length() const {
+    return sqrt(x*x + y*y);
+}
+
+Vec2 Vec2::dist(const Vec2 &rhs) const {
+   return Vec2(rhs.x - x, rhs.y - y);
 }

@@ -56,6 +56,7 @@ void Game::run() {
             sEnemySpawner();
             sMovement();
             sCollision();
+            sLifeSpan();
             m_currentFrame++;
         }
         sUserInput();
@@ -65,7 +66,7 @@ void Game::run() {
 
 
 void Game::setPaused(bool paused) {
-
+    m_paused = paused;
 }
 
 void Game::sMovement() {
@@ -89,7 +90,7 @@ void Game::sUserInput() {
                 break;
             case sf::Event::KeyPressed:
                 if (event.key.code == sf::Keyboard::P) {
-                    m_paused = !m_paused;
+                    this->setPaused(!m_paused);
                     break;
                 }
                 handlePressedReleasedKeys(event, true);
@@ -135,8 +136,6 @@ void Game::handlePressedReleasedKeys(sf::Event event, bool flag){
 void Game::handlePressedMouseKeys(sf::Event event){
     switch (event.mouseButton.button) {
         case sf::Mouse::Left:
-            // spawn bullet
-            std::cout << "left mouse clicked at:"<<event.mouseButton.x<<","<<event.mouseButton.y<<"\n";
             spawnBullet(m_player, Vec2(event.mouseButton.x, event.mouseButton.y));
             break;
         case sf::Mouse::Right:
@@ -149,7 +148,20 @@ void Game::handlePressedMouseKeys(sf::Event event){
 }
 
 void Game::sLifeSpan() {
-
+//    std::cout << "bullet size:"<< m_entities.getEntities("bullet").size()<<"\n";
+    for (auto b: m_entities.getEntities("bullet")) {
+        int total = b->cLifespan->total;
+        int remaining = b->cLifespan->remaining--;
+        if(remaining <= 0){
+            b->destroy();
+            break;
+        }
+        auto alpha = ((float) remaining / total) * 255;
+        auto color = b->cShape->circle.getFillColor();
+        auto outline = b->cShape->circle.getOutlineColor();
+        b->cShape->circle.setFillColor(sf::Color(color.r, color.g, color.b, alpha));
+        b->cShape->circle.setOutlineColor(sf::Color(outline.r, outline.g, outline.b, alpha));
+    }
 }
 
 void Game::sRender() {
@@ -190,6 +202,22 @@ void Game::sCollision() {
             if (ePosLhs.y < 0 || ePosRhs.y > windowSize.y) ePos.y += e->cTransform->velocity.y *= -1;
         }
         e->cTransform->pos = ePos;
+    }
+
+    for (auto e: m_entities.getEntities("enemy")) {
+        auto ePos = e->cTransform->pos;
+        auto eRadPos = Vec2(e->cCollision->radius, e->cCollision->radius);
+        auto ePosLhs = ePos - eRadPos;
+        auto ePosRhs = ePos + eRadPos;
+        for(auto b: m_entities.getEntities("bullet")){
+            auto bPos = b->cTransform->pos;
+            auto bRadPos = Vec2(b->cCollision->radius, b->cCollision->radius);
+            auto bPosLhs = bPos - bRadPos;
+            auto bPosRhs = bPos + bRadPos;
+            if(ePosLhs.x < bPosLhs.x || ePosLhs.y < bPosLhs.y || ePosRhs.x < bPosRhs.x || ePosRhs.y < bPosRhs.y){
+                e->destroy();
+            }
+        }
     }
 }
 
@@ -243,12 +271,20 @@ void Game::spawnSmallEnemies(std::shared_ptr<Entity> entity) {
 
 // spawns a bullet from a given entity to a target location
 void Game::spawnBullet(std::shared_ptr<Entity> entity, const Vec2 &mosePos) {
+    std::cout << "left mouse clicked at:"<<mosePos.x<<","<<mosePos.y<<"\n";
     // TODO: implement the spawning of a bullet which travels toward target
     // -- bullet speed is given as a scalar speed
     // -- you must set the velocity by using formula in notes
+//    auto speed = m_bulletConfig.S/60;
+    auto velocity = entity->cTransform->pos.normalize(mosePos) *m_bulletConfig.S/2;
     auto bullet = m_entities.addEntity("bullet");
-    bullet->cTransform = std::make_shared<CTransform>(mosePos, Vec2(), 0);
-    bullet->cShape = std::make_shared<CShape>(2.0f,3,sf::Color::White, sf::Color::Cyan, 2);
+    bullet->cTransform = std::make_shared<CTransform>(entity->cTransform->pos, velocity, 0);
+    bullet->cShape = std::make_shared<CShape>(m_bulletConfig.SR,m_bulletConfig.V,
+                                              sf::Color(m_bulletConfig.FR, m_bulletConfig.FG,m_bulletConfig.FB),
+                                              sf::Color(m_bulletConfig.OR, m_bulletConfig.OG,m_bulletConfig.OB),
+                                              m_bulletConfig.OT);
+    bullet->cCollision = std::make_shared<CCollision>(m_bulletConfig.CR);
+    bullet->cLifespan = std::make_shared<CLifespan>(m_bulletConfig.L);
 }
 
 void Game::spawnSpecialWeapon(std::shared_ptr<Entity> entity) {

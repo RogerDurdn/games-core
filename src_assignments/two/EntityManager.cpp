@@ -30,13 +30,9 @@ void EntityManager::update() {
 }
 
 void EntityManager::removeDeadEntities(EntityVec &vec) {
-
-    //TODO: remove all dead entities from the input vector, this is called by the update() func
-    for (auto e: vec) {
-        if(!e->isActive()){
-            // remove from vec// remove if
-        }
-    }
+    vec.erase(std::remove_if(vec.begin(), vec.end(),
+                             [](std::shared_ptr<Entity> e) { return !e->m_active; }),
+              vec.end());
 }
 
 
