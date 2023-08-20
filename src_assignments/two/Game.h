@@ -50,9 +50,11 @@ class Game {
 
     void handlePressedReleasedKeys(sf::Event event, bool flag);
     void handlePressedMouseKeys(sf::Event event);
+    int randOf(int min, int max);
 
 public:
     Game(const std::string &config);
 
     void run();
+
 };

@@ -7,8 +7,6 @@ Game::Game(const std::string &config) {
 }
 
 void Game::init(const std::string &config) {
-    //TODO: read config, use structs for configs
-
     std::ifstream configFile(config);
     if(!configFile.is_open()){
         std::cerr << "Cannot open the file:"<<config<<std::endl;
@@ -47,30 +45,21 @@ void Game::init(const std::string &config) {
             m_bulletConfig = b;
         }
     }
-    //default window parameters
     spawnPlayer();
 }
 
 
 void Game::run() {
-
-//    TODO: add pause functionality in here
-// some systems should function while paused (rendering)
-// some systems shouldn't (movement/input)
     while (m_running) {
         if(!m_paused){
             m_entities.update();
-//        sEnemySpawner();
+            sEnemySpawner();
             sMovement();
             sCollision();
-//            m_currentFrame++;
+            m_currentFrame++;
         }
         sUserInput();
         sRender();
-
-//    increment the current frame
-//    may need to be moved when pause implemented
-        m_currentFrame++;
     }
 }
 
@@ -80,30 +69,15 @@ void Game::setPaused(bool paused) {
 }
 
 void Game::sMovement() {
-    // TODO: implement all entities movement here
-//    you should read the m_player->cInput to determine if the player is moving
-
-    m_player->cTransform->velocity = {0, 0};
-
-    if (m_player->cInput->down) {
-        std::cout << "down pressed\n";
-        m_player->cTransform->velocity.y = m_playerConfig.S;
+    Vec2 velocity(0,0);
+    if (m_player->cInput->down) velocity.y = m_playerConfig.S;
+    if (m_player->cInput->up) velocity.y = -m_playerConfig.S;
+    if (m_player->cInput->left) velocity.x = -m_playerConfig.S;
+    if (m_player->cInput->right)velocity.x = m_playerConfig.S;
+    m_player->cTransform->velocity = velocity;
+    for (auto e : m_entities.getEntities()){
+        e->cTransform->pos += e->cTransform->velocity;
     }
-    if (m_player->cInput->up) {
-        std::cout << "up pressed\n";
-        m_player->cTransform->velocity.y = -m_playerConfig.S;
-    }
-    if (m_player->cInput->left) {
-        std::cout << "left pressed\n";
-        m_player->cTransform->velocity.x = -m_playerConfig.S;
-    }
-    if (m_player->cInput->right) {
-        std::cout << "right pressed\n";
-        m_player->cTransform->velocity.x = m_playerConfig.S;
-    }
-// Sample movement speed update
-    m_player->cTransform->pos.x += m_player->cTransform->velocity.x;
-    m_player->cTransform->pos.y += m_player->cTransform->velocity.y;
 }
 
 void Game::sUserInput() {
@@ -114,12 +88,11 @@ void Game::sUserInput() {
                 m_running = false;
                 break;
             case sf::Event::KeyPressed:
-                handlePressedReleasedKeys(event, true);
                 if (event.key.code == sf::Keyboard::P) {
-                    std::cout << "P key pressed\n";
                     m_paused = !m_paused;
                     break;
                 }
+                handlePressedReleasedKeys(event, true);
                 break;
             case sf::Event::KeyReleased:
                 handlePressedReleasedKeys(event, false);
@@ -183,66 +156,80 @@ void Game::sRender() {
     m_window.clear();
     for(auto e: m_entities.getEntities()){
         e->cShape->circle.setPosition(e->cTransform->pos.x, e->cTransform->pos.y);
-        e->cTransform->angle += 1.5f;
-        e->cShape->circle.setRotation(e->cTransform->angle);
+        e->cShape->circle.setRotation(e->cTransform->angle += 1.5);
         m_window.draw(e->cShape->circle);
     }
     m_window.display();
 }
 
 void Game::sEnemySpawner() {
-    // TODO: code which implements enemy spawning should go here
-    // use m_currentFrame - m_lastEnemyST to determine how long has been since the las enemy spawned
-    this->spawnEnemy();
+    if (m_currentFrame == m_lastEneymySpawnTime + m_enemyConfig.SI){
+        this->spawnEnemy();
+    }
 }
 
 void Game::sCollision() {
 //    TODO: implement all proper collisions between entities
 //  be sure to use the collision radius, NOT the shape radius
 
-// player collision with window bounds
+// collision with window bounds
     auto windowSize = Vec2(m_window.getSize().x, m_window.getSize().y);
-    auto playerPos = m_player->cTransform->pos;
-    auto playerRadPos = Vec2(m_playerConfig.CR, m_playerConfig.CR);
-    auto playerPositionLhs = playerPos - playerRadPos;
-    auto playerPositionRhs = playerPos + playerRadPos;
-
-    if (playerPositionLhs.x < 0) playerPos.x = playerRadPos.x;
-    if (playerPositionLhs.y < 0) playerPos.y = playerRadPos.y;
-    if (playerPositionRhs.x > windowSize.x) playerPos.x = windowSize.x - playerRadPos.x;
-    if (playerPositionRhs.y > windowSize.y) playerPos.y = windowSize.y - playerRadPos.y;
-    m_player->cTransform->pos = playerPos;
+    for (auto e: m_entities.getEntities()) {
+        auto ePos = e->cTransform->pos;
+        auto eRadPos = Vec2(e->cCollision->radius, e->cCollision->radius);
+        auto ePosLhs = ePos - eRadPos;
+        auto ePosRhs = ePos + eRadPos;
+        if(e->tag() =="player"){
+            if (ePosLhs.x < 0) ePos.x =  eRadPos.x;
+            if (ePosLhs.y < 0) ePos.y = eRadPos.y;
+            if (ePosRhs.x > windowSize.x) ePos.x = windowSize.x - eRadPos.x;
+            if (ePosRhs.y > windowSize.y) ePos.y = windowSize.y - eRadPos.y;
+        }
+        if (e->tag() == "enemy") {
+            if (ePosLhs.x < 0 || ePosRhs.x > windowSize.x) ePos.x += e->cTransform->velocity.x *= -1;
+            if (ePosLhs.y < 0 || ePosRhs.y > windowSize.y) ePos.y += e->cTransform->velocity.y *= -1;
+        }
+        e->cTransform->pos = ePos;
+    }
 }
 
 void Game::spawnPlayer() {
-    auto entity = m_entities.addEntity("player");
+    auto player = m_entities.addEntity("player");
     float wMiddleX = m_window.getSize().x/2;
     float wMiddleY = m_window.getSize().y/2;
-    entity->cTransform = std::make_shared<CTransform>(Vec2(wMiddleX, wMiddleY), Vec2(m_playerConfig.S, m_playerConfig.S), 0.0f);
-    entity->cShape = std::make_shared<CShape>(
+    player->cTransform = std::make_shared<CTransform>(Vec2(wMiddleX, wMiddleY), Vec2(m_playerConfig.S, m_playerConfig.S), 0.0f);
+    player->cShape = std::make_shared<CShape>(
             m_playerConfig.SR, m_playerConfig.V,
             sf::Color(m_playerConfig.FR, m_playerConfig.FG, m_playerConfig.FB),
             sf::Color(m_playerConfig.OR, m_playerConfig.OG, m_playerConfig.OB),
             m_playerConfig.OT);
-    entity->cInput = std::make_shared<CInput>();
-    m_player = entity;
+    player->cCollision = std::make_shared<CCollision>(m_playerConfig.CR);
+    player->cInput = std::make_shared<CInput>();
+    m_player = player;
 }
 
 void Game::spawnEnemy() {
-    // TODO: make sure the enemy is spawned properly with the m_enemyconfig variables the enemy must be spawned
-    //completely within the bounds of the window
-    float ex = rand() % m_window.getSize().x;
-    float ey = rand() % m_window.getSize().y;
-    auto entity = m_entities.addEntity("enemy");
+    int cr = m_enemyConfig.CR;
+    int ex = randOf(cr, m_window.getSize().x - cr);
+    int ey = randOf(cr, m_window.getSize().y - cr);
+    int ve = randOf(m_enemyConfig.VMIN, m_enemyConfig.VMAX);
+    auto velocity = Vec2(randOf(m_enemyConfig.SMIN, m_enemyConfig.SMAX),
+                         randOf(m_enemyConfig.SMIN, m_enemyConfig.SMAX));
 
-    entity->cTransform = std::make_shared<CTransform>(Vec2(ex,ey),Vec2(), 0.0f);
-
-    entity->cShape = std::make_shared<CShape>(16.0f,3,sf::Color::Blue, sf::Color::Red, 1.0f);
-
-
-    //record when the most recent enemy was spawned
+    auto enemy = m_entities.addEntity("enemy");
+    enemy->cTransform = std::make_shared<CTransform>(Vec2(ex, ey), velocity, 0.0f);
+    enemy->cShape = std::make_shared<CShape>(m_enemyConfig.SR, ve,
+                                             sf::Color(randOf(0, 255),
+                                                       randOf(0, 255),
+                                                       randOf(0, 255)),
+                                             sf::Color(m_enemyConfig.OR, m_enemyConfig.OG, m_enemyConfig.OB),
+                                             m_enemyConfig.OT);
+    enemy->cCollision = std::make_shared<CCollision>(m_enemyConfig.CR);
     m_lastEneymySpawnTime = m_currentFrame;
+}
 
+int Game::randOf(int min, int max){
+    return rand() % (max - min + 1) + min;
 }
 
 void Game::spawnSmallEnemies(std::shared_ptr<Entity> entity) {
