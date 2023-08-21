@@ -22,10 +22,12 @@ class Game {
     EntityManager m_entities; // vector of entities to maintain
     sf::Font m_font;
     sf::Text m_text;
+    sf::Text m_special;
     PlayerConfig m_playerConfig;
     EnemyConfig m_enemyConfig;
     BulletConfig m_bulletConfig;
     int m_score = 0;
+    int m_special_cd = 300;
     int m_currentFrame = 0;
     int m_lastEneymySpawnTime = 0;
     bool m_paused = false;
@@ -46,7 +48,7 @@ class Game {
     void spawnEnemy();
     void spawnSmallEnemies(std::shared_ptr<Entity> entity);
     void spawnBullet(std::shared_ptr<Entity> entity, const Vec2 & mosePos);
-    void spawnSpecialWeapon(std::shared_ptr<Entity> entity);
+    void spawnSpecialWeapon(std::shared_ptr<Entity> entity, const Vec2 &mosePos);
 
     void handlePressedReleasedKeys(sf::Event event, bool flag);
     void handlePressedMouseKeys(sf::Event event);

@@ -51,7 +51,7 @@ void Vec2::operator/=(const float val) {
 
 // TODO: testing
 float Vec2::distSqr(const Vec2 &rhs) const {
-    Vec2 d(rhs.x - x, rhs.y - y);
+    auto d = this->dist(rhs);
     return (d.x * d.x) + (d.y * d.y);
 }
 
