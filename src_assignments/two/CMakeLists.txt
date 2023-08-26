@@ -14,10 +14,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")
 include_directories(${SFML_INCLUDE_DIRS})
 find_package(SFML 2.5 COMPONENTS system window graphics network audio REQUIRED)
 
-add_executable(shape_game main.cpp
-        Vec2.cpp
-        Game.cpp
-        Components.h
-        Entity.cpp
-        EntityManager.cpp)
+file(GLOB shapeSrc CONFIGURE_DEPENDS "*.h" "*.cpp")
+add_executable(shape_game ${shapeSrc})
 target_link_libraries(shape_game sfml-system sfml-window sfml-graphics sfml-audio sfml-network)
