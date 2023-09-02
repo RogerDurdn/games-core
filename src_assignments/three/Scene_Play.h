@@ -3,7 +3,6 @@
 #include "Scene.h"
 #include <map>
 #include <memory>
-
 #include "EntityManager.h"
 
 
@@ -27,9 +26,11 @@ protected:
 
     Scene_Play();
 
-    Scene_Play(GameEngine *gameEngine, const std::string &levelPath);
-
     void init(const std::string &levelPath);
+
+public:
+
+    Scene_Play(GameEngine *gameEngine, const std::string &levelPath);
 
     void update();
 
@@ -59,7 +60,6 @@ protected:
     Vec2 gridToMidPixel(float gridX, float gridY, std::shared_ptr<Entity> entity);
 
     void loadLevel(const std::string &filename);
-
 };
 
 

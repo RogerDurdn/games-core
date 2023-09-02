@@ -18,16 +18,21 @@ protected:
 
     void init();
 
-    void update();
-
     void onEnd();
+
+    Scene_Menu();
+
+
+public:
+
+    Scene_Menu(GameEngine *gameEngine);
+
+    void setPaused(bool paused);
+
+    void update();
 
     void sDoAction(const Action &action);
 
-public:
-    Scene_Menu(GameEngine *gameEngine);
-
     void sRender();
 
-    void sDoAction();
 };

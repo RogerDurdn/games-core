@@ -7,26 +7,29 @@
 #include "Animation.h"
 
 class Assets {
-    std::map<std::string, sf::Texture> textures;
-    std::map<std::string, Animation> animations;
-    std::map<std::string, sf::Sound> sounds;
-    std::map<std::string, sf::Font> fonts;
+    std::map<std::string, sf::Texture> m_textures;
+    std::map<std::string, Animation> m_animations;
+    std::map<std::string, sf::Sound> m_sounds;
+    std::map<std::string, sf::Font> m_fonts;
 
 public:
+    Assets();
 
-    void addTexture(std::string name, std::string path) const;
+    void loadFromFile(const std::string &path);
 
-    void addAnimation(std::string name, Animation animation) const;
+    void addTexture(const std::string &name, const std::string &path) const;
 
-    void addSound(std::string name, std::string path) const;
+    void addAnimation(const std::string &name, Animation animation) const;
 
-    void addFont(std::string name, std::string path) const;
+    void addSound(const std::string &name, const std::string &path) const;
 
-    sf::Texture &getTexture(std::string name) const;
+    void addFont(const std::string &name, const std::string &path) const;
 
-    Animation &getAnimation(std::string name) const;
+    const sf::Texture &getTexture(const std::string &name) const;
 
-    sf::Sound &getSound(std::string name) const;
+    const Animation getAnimation(const std::string &name) const;
 
-    sf::Font &getFont(std::string name) const;
+    const sf::Sound &getSound(const std::string &name) const;
+
+    const sf::Font &getFont(const std::string &name) const;
 };

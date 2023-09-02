@@ -17,7 +17,7 @@ public:
     Vec2 velocity = {0.0, 0.0};
     float angle = 0;
 
-    CTransform();
+    CTransform() {}
 
     CTransform(const Vec2 &p)
             : pos(p) {
@@ -33,6 +33,8 @@ class CLifespan : public Component {
 public:
     int lifespan = 0; // amount of lifespan on the entity
     int frameCreated = 0; // the frameCreated initial amount of lifespan
+    CLifespan() {}
+
     CLifespan(int duration, int frame) : frameCreated(frame), lifespan(duration) {}
 };
 
@@ -75,7 +77,7 @@ public:
 
     CAnimation() {}
 
-    CAnimation(Animation &a, bool show)
+    CAnimation(const Animation &a, bool show)
             : animation(a), repeat(show) {
     }
 

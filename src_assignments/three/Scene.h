@@ -20,12 +20,16 @@ protected:
 
     virtual void onEnd() = 0;
 
-    void setPaused(bool paused);
+    Scene(GameEngine *gameEngine) : m_game(gameEngine) {
+    }
+
+    void setPaused(bool paused) {
+        m_paused = true;
+    }
 
 public:
     Scene();
 
-    Scene(GameEngine *gameEngine);
 
     virtual void update() = 0;
 
@@ -33,21 +37,36 @@ public:
 
     virtual void sRender() = 0;
 
-    virtual void doAction(const Action &action);
 
     void simulate(const size_t frames);
 
-    void registerAction(int inputKey, const std::string &actionName);
+    void registerAction(Action action);
 
-    size_t width() const;
+    void registerAction(int inputKey, const std::string &actionName) {
+        this->m_actionMap[inputKey] = actionName;
+    }
 
-    size_t height() const;
+    size_t width() const {
+        return 120;
+    }
 
-    size_t currentFrame() const;
+    size_t height() const {
+        return 120;
+    }
 
-    bool hasEnded() const;
+    size_t currentFrame() const {
+        return m_currentFrame;
+    }
 
-    const ActionMap &getActionMap() const;
+    bool hasEnded() const {
+        return m_hasEnded;
+    }
 
-    void drawLine(const Vec2 &p1, const Vec2 &p2);
+    const ActionMap &getActionMap() {
+        return m_actionMap;
+    }
+
+    void drawLine(const Vec2 &p1, const Vec2 &p2) {
+
+    }
 };

@@ -15,6 +15,7 @@ typedef std::tuple<
 > ComponentTuple;
 
 class Entity {
+
     friend class EntityManager;
 
     bool m_active = true;
@@ -25,6 +26,7 @@ class Entity {
 
     //constructor is private, so we can never create entities outside the entityManager
     Entity(const size_t id, const std::string &tag);
+
 
 public:
 

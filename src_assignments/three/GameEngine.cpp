@@ -9,17 +9,11 @@ GameEngine::GameEngine(const std::string &path) {
 }
 
 void GameEngine::init(const std::string &path) {
-//    m_assets.loadFromFile(path);
+    m_assets.loadFromFile(path);
     m_window.create(sf::VideoMode(1280, 768), "Definitely Not Mario");
     m_window.setFramerateLimit(60);
 
     changeScene("MENU", std::make_shared<Scene_Menu>(this), false);
-}
-
-void GameEngine::run() {
-    while (isRunning()) {
-        update();
-    }
 }
 
 std::shared_ptr<Scene> GameEngine::currentScene() {
@@ -34,18 +28,12 @@ sf::RenderWindow &GameEngine::window() {
     return m_window;
 }
 
-
-void GameEngine::update() {
-
+void GameEngine::run() {
+    while (isRunning()) {
+        update();
+    }
 }
 
-void GameEngine::quit() {
-
-}
-
-const Assets &GameEngine::assets() const {
-//    return nullptr;
-}
 
 void GameEngine::sUserInput() {
     sf::Event event;
@@ -70,7 +58,7 @@ void GameEngine::sUserInput() {
             // determine start or en action by whether it was key pres or release
             const std::string actionType = (event.type == sf::Event::KeyPressed) ? "START" : "END";
             //look up the action and send the action to the scene
-            currentScene()->doAction(Action(currentScene()->getActionMap().at(event.key.code), actionType));
+            currentScene()->sDoAction(Action(currentScene()->getActionMap().at(event.key.code), actionType));
         }
     }
 }
@@ -79,3 +67,14 @@ void GameEngine::changeScene(const std::string &name, const std::shared_ptr<Scen
 
 }
 
+void GameEngine::update() {
+
+}
+
+void GameEngine::quit() {
+
+}
+
+const Assets &GameEngine::assets() const {
+    return m_assets;
+}
