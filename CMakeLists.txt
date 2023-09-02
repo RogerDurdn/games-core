@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.26)
 project(core-games)
 add_subdirectory(src_assignments/two)
+add_subdirectory(src_assignments/three)
 
 # system
 set(CMAKE_CXX_STANDARD 17)

@@ -2,40 +2,62 @@
 
 #include "Component.h"
 
+class EntityManager;
+
+typedef std::tuple<
+        CTransform,
+        CLifespan,
+        CInput,
+        CBoundingBox,
+        CAnimation,
+        CGravity,
+        CState
+> ComponentTuple;
+
 class Entity {
     friend class EntityManager;
 
-    std::tuple<
-            std::shared_ptr<CTransform>,
-            std::shared_ptr<CShape>,
-            std::shared_ptr<CCollision>,
-            std::shared_ptr<CInput>,
-            std::shared_ptr<CScore>,
-            std::shared_ptr<CLifespan>> components;
-
-    std::string m_tag = "default";
     bool m_active = true;
+    std::string m_tag = "default";
     size_t m_id = 0;
+    ComponentTuple m_components;
 
-    //constructor and destructor
+
+    //constructor is private, so we can never create entities outside the entityManager
     Entity(const size_t id, const std::string &tag);
 
 public:
 
-    void addComponent(const Component &component);
+    void destroy();
 
-    bool hasComponent(const Component component) const;
-
-    Component &getComponent(const Component component) const;
-
-    void removeComponent(const Component component) const;
-
-    // component pointers
     bool isActive() const;
 
     const std::string &tag() const;
 
     const size_t id() const;
 
-    void destroy();
+
+    template<typename T>
+    bool hasComponent() {
+        return getComponent<T>().has;
+    }
+
+    template<typename T, typename... TArgs>
+    T &addComponent(TArgs &&... mArgs) {
+        auto &component = getComponent<T>();
+        component = T(std::forward<TArgs>(mArgs)...);
+        component.has = true;
+        return component;
+    }
+
+    template<typename T>
+    T &getComponent() {
+        return std::get<T>(m_components);
+    }
+
+    template<typename T>
+    void removeComponent() {
+        getComponent<T>() = T();
+    }
+
 };
