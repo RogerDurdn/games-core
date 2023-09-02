@@ -41,16 +41,17 @@ void GameEngine::sUserInput() {
         if (event.type == sf::Event::Closed) {
             quit();
         }
-        if (event.type == sf::Event::KeyPressed) {
-            std::cout << "screenshot saved to" << "test.png" << std::endl;
-            sf::Texture texture;
-            texture.create(m_window.getSize().x, m_window.getSize().y);
-            texture.update(m_window);
-            if (texture.copyToImage().saveToFile("test.png")) {
-                std::cout << "screenshot saved to" << "test.png" << std::endl;
-            }
-        }
+//        if (event.type == sf::Event::KeyPressed) {
+//            std::cout << "screenshot saved to" << "test.png" << std::endl;
+//            sf::Texture texture;
+//            texture.create(m_window.getSize().x, m_window.getSize().y);
+//            texture.update(m_window);
+//            if (texture.copyToImage().saveToFile("test.png")) {
+//                std::cout << "screenshot saved to" << "test.png" << std::endl;
+//            }
+//        }
         if (event.type == sf::Event::KeyPressed || event.type == sf::Event::KeyReleased) {
+            std::cout << "keyPressed: " << event.type << std::endl;
             // if the current scene does not have an action associated with this key, skip the event
             if (currentScene()->getActionMap().find(event.key.code) == currentScene()->getActionMap().end()) {
                 continue;
@@ -64,15 +65,17 @@ void GameEngine::sUserInput() {
 }
 
 void GameEngine::changeScene(const std::string &name, const std::shared_ptr<Scene> scene, bool endCurrentScene) {
-
+    m_sceneMap[name] = scene;
+    m_currentScene = name;
 }
 
 void GameEngine::update() {
-
+    sUserInput();
+    currentScene()->update();
 }
 
 void GameEngine::quit() {
-
+    exit(0);
 }
 
 const Assets &GameEngine::assets() const {
