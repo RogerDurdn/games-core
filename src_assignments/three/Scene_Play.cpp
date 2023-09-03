@@ -20,6 +20,12 @@ void Scene_Play::init(const std::string &levelPath) {
     registerAction(sf::Keyboard::T, "TOGGLE_TEXTURE");
     registerAction(sf::Keyboard::C, "TOGGLE_COLLISION");
     registerAction(sf::Keyboard::G, "TOGGLE_GRID");
+    //player
+    registerAction(sf::Keyboard::W, "PLAYER_UP");
+    registerAction(sf::Keyboard::S, "PLAYER_DOWN");
+    registerAction(sf::Keyboard::D, "PLAYER_RIGHT");
+    registerAction(sf::Keyboard::A, "PLAYER_LEFT");
+    registerAction(sf::Keyboard::Space, "PLAYER_SHOOT");
 
     // TODO: Register all other gameplay Actions
     m_gridText.setCharacterSize(12);
@@ -109,13 +115,35 @@ void Scene_Play::sRender() {
 }
 
 void Scene_Play::sDoAction(const Action &action) {
-    if (action.type() == "START") {
-        if (action.name() == "TOGGLE_TEXTURE") { m_drawTextures = !m_drawTextures; }
-        else if (action.name() == "TOGGLE_COLLISION") { m_drawCollision = !m_drawCollision; }
-        else if (action.name() == "TOGGLE_GRID") { m_drawGrid = !m_drawGrid; }
-        else if (action.name() == "PAUSE") { setPaused(!m_paused); }
-        else if (action.name() == "QUIT") { onEnd(); }
-    } else if (action.type() == "END") {
+    auto scenePlay = this;
+    auto &player = m_player;
+    auto handlePlayerInput = [&player, &scenePlay](std::string actName, bool apply) -> void {
+        auto &playerInput = player->getComponent<CInput>();
+        if (actName.find("PLAYER") != std::string::npos) {
+            if (actName == "PLAYER_UP") playerInput.up = apply;
+            if (actName == "PLAYER_DOWN") playerInput.down = apply;
+            if (actName == "PLAYER_RIGHT") playerInput.right = apply;
+            if (actName == "PLAYER_LEFT") playerInput.left = apply;
+            if (actName == "PLAYER_SHOOT") {
+                if (apply && playerInput.canShoot) scenePlay->spawnBullet(player);
+                playerInput.canShoot = !apply;
+            }
+        }
+    };
+
+    auto actType = action.type();
+    auto actName = action.name();
+    if (actType == "START") {
+        if (actName == "TOGGLE_TEXTURE") m_drawTextures = !m_drawTextures;
+        if (actName == "TOGGLE_COLLISION") m_drawCollision = !m_drawCollision;
+        if (actName == "TOGGLE_GRID") m_drawGrid = !m_drawGrid;
+        if (actName == "PAUSE") setPaused(!m_paused);
+        if (actName == "QUIT") onEnd();
+        //player
+        handlePlayerInput(actName, true);
+    }
+    if (actType == "END") {
+        handlePlayerInput(actName, false);
     }
 }
 
@@ -130,8 +158,13 @@ void Scene_Play::sAnimation() {
 }
 
 void Scene_Play::sLifeSpan() {
-    // TODO: check lifespan of entities that have the, and destroy them if they go over
-
+    m_currentFrame++;
+    for (auto &e: m_entityManager.getEntities()) {
+        auto lifeSpan = e->getComponent<CLifespan>();
+        if (lifeSpan.frameCreated == 0) continue;
+        if (m_currentFrame - lifeSpan.frameCreated > lifeSpan.lifespan) e->destroy();
+    }
+    // TODO: check lifespan of entities that have they, and destroy them if they go over
 }
 
 void Scene_Play::sEnemySpawner() {
@@ -167,32 +200,53 @@ void Scene_Play::spawnPlayer() {
 
     // here is a sample player entity which you can use to construct other entities
     m_player = m_entityManager.addEntity("player");
-    m_player->addComponent<CAnimation>(m_game->assets().getAnimation("Stand"), true);
+    auto &animation = m_game->assets().getAnimation("Stand");
+    m_player->addComponent<CAnimation>(animation, true);
     m_player->addComponent<CTransform>(
-            gridToMidPixel(m_playerConfig.X, m_playerConfig.Y, m_player)); // here we set the position
-    m_player->addComponent<CBoundingBox>(Vec2(m_playerConfig.CX, m_playerConfig.CY));
-    m_player->addComponent<CGravity>(m_playerConfig.GRAVITY);
+            gridToMidPixel(m_plyConf.GX, m_plyConf.GY, m_player),
+            Vec2(m_plyConf.SPEED_X, m_plyConf.SPEED_X), 0); // here we set the position
+    m_player->addComponent<CBoundingBox>(Vec2(m_plyConf.CW, m_plyConf.CH));
+    m_player->addComponent<CGravity>(m_plyConf.GRAVITY);
+    m_player->addComponent<CInput>();
 
     //TODO: be sure to add the lifespan components to the player
 }
 
 
 void Scene_Play::spawnBullet(std::shared_ptr<Entity> entity) {
-    // TODO: this should spawn a bullte at the given entity, going in the direction the entity is facing
+    auto bulletSpeed = 5.0f;
+    auto bulletDuration = 60;
+    auto &pT = entity->getComponent<CTransform>();
+    std::cout << "bullet from:" << pT.pos.x << "," << pT.pos.y << "\n";
+    auto velocity = pT.pos.normalize(Vec2(pT.pos.x + pT.scale.x, pT.pos.y)) * bulletSpeed;
+    auto bullet = m_entityManager.addEntity("bullet");
+    bullet->addComponent<CAnimation>(m_game->assets().getAnimation(m_plyConf.WEAPON), true);
+    bullet->addComponent<CTransform>(pT.pos, velocity, 1);
+    bullet->addComponent<CBoundingBox>(bullet->getComponent<CAnimation>().animation.getSize());
+    bullet->addComponent<CLifespan>(bulletDuration, m_currentFrame);
+    // TODO: this should spawn a bullet at the given entity, going in the direction the entity is facing
 }
 
 void Scene_Play::sMovement() {
-
     /*
      * TODO: Implement player movement / jumping based on its CInput component
      * TODO: Implement gravity's effect on the player
-     * TODO: Implement the maximum player speed in both X and Y directions
-     * NOTE: Setting and entity's scale.x to -1/1 will make it face to the left/right
+     * TODO: Implement the maximum player speed in both GX and GY directions
+     * TODO: Setting and entity's scale.x to -1/1 will make it face to the left/right
      */
+    // TODO: if the player is moving faster than max speed in any direction, set its speed in that direction to the max speed
+    auto &playerInput = m_player->getComponent<CInput>();
+    auto &playerTransform = m_player->getComponent<CTransform>();
+    Vec2 velocity(0, 0);
+    if (playerInput.down) velocity.y = m_plyConf.SPEED_X;
+    if (playerInput.up) velocity.y = -m_plyConf.SPEED_X;
+    if (playerInput.left) velocity.x = -m_plyConf.SPEED_X, playerTransform.scale = Vec2(-1, 1);
+    if (playerInput.right)velocity.x = m_plyConf.SPEED_X, playerTransform.scale = Vec2(1, 1);
+    playerTransform.velocity = velocity;
+    for (auto e: m_entityManager.getEntities()) {
+        e->getComponent<CTransform>().pos += e->getComponent<CTransform>().velocity;
 
-    // if the player is moving faster than max speed in any direction,
-    // set its speed in that direction to the max speed
-
+    }
 }
 
 
@@ -224,20 +278,15 @@ void Scene_Play::loadLevel(const std::string &filename) {
     m_entityManager = EntityManager();
     m_entityManager = EntityManager{};
     loadLevelConfig(filename);
-    spawnPlayer();
 
-    try {
-        for (auto misc: m_miscConfig) {
-            auto &animation = m_game->assets().getAnimation(misc.NAME_ANI);
-            auto miscEntity = m_entityManager.addEntity(misc.TYPE);
-            miscEntity->addComponent<CAnimation>(animation, true);
-            miscEntity->addComponent<CTransform>(gridToMidPixel(misc.GX, misc.GY, miscEntity));
-            if (misc.TYPE != "Dec") miscEntity->addComponent<CBoundingBox>(animation.getSize());
-        }
-    } catch (std::exception &e) {
-        std::cout << "error on:" << e.what();
-        exit(-1);
+    for (auto misc: m_miscConfig) {
+        auto &animation = m_game->assets().getAnimation(misc.NAME_ANI);
+        auto miscEntity = m_entityManager.addEntity(misc.TYPE);
+        miscEntity->addComponent<CAnimation>(animation, true);
+        miscEntity->addComponent<CTransform>(gridToMidPixel(misc.GX, misc.GY, miscEntity));
+        if (misc.TYPE != "Dec") miscEntity->addComponent<CBoundingBox>(animation.getSize());
     }
+    spawnPlayer();
 
     /*
      * NOTE: This is IMPORTANT - READ
@@ -290,7 +339,7 @@ void Scene_Play::loadLevelConfig(const std::string &fileName) {
             float X, Y, CX, CY, SPEED, MAXSPEED, JUMP, GRAVITY;
             std::string WEAPON;
             configFile >> X >> Y >> CX >> CY >> SPEED >> MAXSPEED >> JUMP >> GRAVITY >> WEAPON;
-            m_playerConfig = PlayerConfig{X, Y, CX, CY, SPEED, MAXSPEED, JUMP, GRAVITY, WEAPON};
+            m_plyConf = PlayerConfig{X, Y, CX, CY, SPEED, MAXSPEED, JUMP, GRAVITY, WEAPON};
         }
     }
 }
