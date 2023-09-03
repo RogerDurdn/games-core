@@ -13,11 +13,16 @@ class Scene_Play : public Scene {
         std::string WEAPON;
     };
 
-protected:
+    struct MiscConfig {
+        std::string TYPE, NAME_ANI;
+        float GX, GY;
+    };
 
+protected:
     std::shared_ptr<Entity> m_player;
     std::string m_levelPath;
     PlayerConfig m_playerConfig;
+    std::vector<MiscConfig> m_miscConfig;
     bool m_drawTextures = true;
     bool m_drawCollision = false;
     bool m_drawGrid = false;
@@ -62,6 +67,8 @@ public:
     void loadLevel(const std::string &filename);
 
     void drawLine(const Vec2 &p1, const Vec2 &p2);
+
+    void loadLevelConfig(const std::string &filePath);
 };
 
 
