@@ -9,8 +9,9 @@
 class Scene_Play : public Scene {
 
     struct PlayerConfig {
-        float X, Y, CX, CY, SPEED, MAXSPEED, JUMP, GRAVITY;
-        std::string WEAPON;
+        //    2    3  48  48     5          -20        20       0.75
+        float GX, GY, CW, CH, SPEED_X, SPEED_JUMP, SPEED_MAX, GRAVITY;
+        std::string WEAPON;// Buster
     };
 
     struct MiscConfig {
@@ -21,7 +22,7 @@ class Scene_Play : public Scene {
 protected:
     std::shared_ptr<Entity> m_player;
     std::string m_levelPath;
-    PlayerConfig m_playerConfig;
+    PlayerConfig m_plyConf;
     std::vector<MiscConfig> m_miscConfig;
     bool m_drawTextures = true;
     bool m_drawCollision = false;
