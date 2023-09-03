@@ -15,6 +15,7 @@ protected:
     std::vector<std::string> m_levelPaths;
     sf::Text m_menuText;
     size_t m_selectedMenuIndex = 0;
+    std::string m_levels[3] = {"LEVEL 1", "LEVEL 2", "LEVEL 3"};
 
     void init();
 

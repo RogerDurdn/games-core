@@ -36,7 +36,7 @@ const std::string &Animation::getName() const {
     return m_name;
 }
 
-sf::Sprite &Animation::getSpriete() {
+sf::Sprite &Animation::getSprite() {
     return m_sprite;
 }
 

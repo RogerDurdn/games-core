@@ -1,4 +1,5 @@
 #include "Scene_Play.h"
+#include "Scene_Menu.h"
 #include "Physics.h"
 #include "Assets.h"
 #include "GameEngine.h"
@@ -21,7 +22,99 @@ void Scene_Play::init(const std::string &levelPath) {
 
     // TODO: Register all other gameplay Actions
     m_gridText.setCharacterSize(12);
-    m_gridText.setFont(m_game->assets().getFont("Tech"));
+    m_gridText.setFont(m_game->assets().getFont("Grid"));
+    loadLevel(levelPath);
+}
+
+void Scene_Play::update() {
+    m_entityManager.update();
+    // TODO: implement pause functionality
+    sMovement();
+    sLifeSpan();
+    sCollision();
+    sAnimation();
+    sRender();
+}
+
+void Scene_Play::sRender() {
+    // color the background darker, so you know that the game is paused
+//    if (!m_paused) {
+//        m_game->window().clear(sf::Color(100, 100, 255));
+//    } else {
+    m_game->window().clear(sf::Color(50, 50, 150));
+//    }
+
+    //set the viewport of the window to be centered on the player if it's far enough right
+    auto &pPos = m_player->getComponent<CTransform>().pos;
+    float windowCenterX = std::max(m_game->window().getSize().x / 2.0f, pPos.x);
+    sf::View view = m_game->window().getView();
+    view.setCenter(windowCenterX, m_game->window().getSize().y - view.getCenter().y);
+    m_game->window().setView(view);
+
+    // draw all entity textures / animations
+
+    if (m_drawTextures) {
+        for (auto e: m_entityManager.getEntities()) {
+
+            auto &transform = e->getComponent<CTransform>();
+            if (e->hasComponent<CAnimation>()) {
+                auto &animation = e->getComponent<CAnimation>().animation;
+                animation.getSprite().setRotation(transform.angle);
+                animation.getSprite().setPosition(transform.pos.x, transform.pos.y);
+                animation.getSprite().setScale(transform.scale.x, transform.scale.y);
+                m_game->window().draw(animation.getSprite());
+            }
+        }
+    }
+    // draw all entity collision bounding boxes with a rectangle shape
+    if (m_drawCollision) {
+        for (auto e: m_entityManager.getEntities()) {
+            if (e->hasComponent<CBoundingBox>()) {
+                auto &box = e->getComponent<CBoundingBox>();
+                auto &transform = e->getComponent<CTransform>();
+                sf::RectangleShape rect;
+                rect.setSize(sf::Vector2f(box.size.x - 1, box.size.y - 1));
+                rect.setOrigin(sf::Vector2f(box.halfSize.x - 1, box.halfSize.y - 1));
+                rect.setPosition(transform.pos.x, transform.pos.y);
+                rect.setFillColor(sf::Color(50, 50, 150));
+                rect.setOutlineColor(sf::Color(255, 255, 255));
+                rect.setOutlineThickness(1);
+                m_game->window().draw(rect);
+            }
+        }
+    }
+
+    // draw the grid so debug can be easy
+    if (m_drawGrid) {
+        float leftX = m_game->window().getView().getCenter().x - width() / 2;
+        float rightX = leftX + width() + m_gridSize.x;
+        float nextGridX = leftX - ((int) leftX % (int) m_gridSize.x);
+        for (float x = nextGridX; x < rightX; x += m_gridSize.x) {
+            drawLine(Vec2(x, 0), Vec2(x, height()));
+        }
+
+        for (float y = 0; y < height(); y += m_gridSize.y) {
+            drawLine(Vec2(leftX, height() - y), Vec2(rightX, height() - y));
+            for (float x = nextGridX; x < rightX; x += m_gridSize.x) {
+                std::string xCell = std::to_string((int) x / (int) m_gridSize.x);
+                std::string yCell = std::to_string((int) y / (int) m_gridSize.y);
+                m_gridText.setString("(" + xCell + "," + yCell + ")");
+                m_gridText.setPosition(x + 3, height() - y - m_gridSize.y + 2);
+                m_game->window().draw(m_gridText);
+            }
+        }
+    }
+}
+
+void Scene_Play::sDoAction(const Action &action) {
+    if (action.type() == "START") {
+        if (action.name() == "TOGGLE_TEXTURE") { m_drawTextures = !m_drawTextures; }
+        else if (action.name() == "TOGGLE_COLLISION") { m_drawCollision = !m_drawCollision; }
+        else if (action.name() == "TOGGLE_GRID") { m_drawGrid = !m_drawGrid; }
+        else if (action.name() == "PAUSE") { setPaused(!m_paused); }
+        else if (action.name() == "QUIT") { onEnd(); }
+    } else if (action.type() == "END") {
+    }
 }
 
 void Scene_Play::sAnimation() {
@@ -63,93 +156,6 @@ void Scene_Play::sCollision() {
      */
 }
 
-void Scene_Play::onEnd() {
-    // TODO: when the scene ends, change back to the Menu scene use m_game -> changeScene(params)
-
-}
-
-
-void Scene_Play::sRender() {
-    // color the background darker, so you know that the game is paused
-    if (!m_paused) {
-        m_game->window().clear(sf::Color(100, 100, 255));
-    } else {
-        m_game->window().clear(sf::Color(50, 50, 150));
-    }
-
-    //set the viewport of the window to be centered on the player if it's far enough right
-    auto &pPos = m_player->getComponent<CTransform>().pos;
-    float windowCenterX = std::max(m_game->window().getSize().x / 2.0f, pPos.x);
-    sf::View view = m_game->window().getView();
-    view.setCenter(windowCenterX, m_game->window().getSize().y - view.getCenter().y);
-    m_game->window().setView(view);
-
-    // draw all entity textures / animations
-
-    if (m_drawTextures) {
-        for (auto e: m_entityManager.getEntities()) {
-
-            auto &transform = e->getComponent<CTransform>();
-            if (e->hasComponent<CAnimation>()) {
-                auto &animation = e->getComponent<CAnimation>().animation;
-                animation.getSpriete().setRotation(transform.angle);
-                animation.getSpriete().setPosition(transform.pos.x, transform.pos.y);
-                animation.getSpriete().setScale(transform.scale.x, transform.scale.y);
-                m_game->window().draw(animation.getSpriete());
-            }
-        }
-    }
-    // draw all entity collision bounding boxes with a rectangle shape
-    if (m_drawCollision) {
-        for (auto e: m_entityManager.getEntities()) {
-            if (e->hasComponent<CBoundingBox>()) {
-                auto &box = e->getComponent<CBoundingBox>();
-                auto &transform = e->getComponent<CTransform>();
-                sf::RectangleShape rect;
-                rect.setSize(sf::Vector2f(box.size.x - 1, box.size.y - 1));
-                rect.setOrigin(sf::Vector2f(box.halfSize.x - 1, box.halfSize.y - 1));
-                rect.setPosition(transform.pos.x, transform.pos.y);
-                rect.setFillColor(sf::Color(0, 0, 0));
-                rect.setOutlineColor(sf::Color(255, 255, 255));
-                rect.setOutlineThickness(1);
-                m_game->window().draw(rect);
-            }
-        }
-    }
-
-    // draw the grid so debug can be easy
-    if (m_drawGrid) {
-        float leftX = m_game->window().getView().getCenter().x - width() / 2;
-        float rightX = leftX + width() + m_gridSize.x;
-        float nextGridX = leftX - ((int) leftX % (int) m_gridSize.x);
-        for (float x = nextGridX; x < rightX; x += m_gridSize.x) {
-            drawLine(Vec2(x, 0), Vec2(x, height()));
-        }
-
-        for (float y = 0; y < height(); y += m_gridSize.y) {
-            drawLine(Vec2(leftX, height() - y), Vec2(rightX, height() - y));
-            for (float x = nextGridX; x < rightX; x += m_gridSize.x) {
-                std::string xCell = std::to_string((int) x / (int) m_gridSize.x);
-                std::string yCell = std::to_string((int) y / (int) m_gridSize.y);
-                m_gridText.setString("(" + xCell + "," + yCell + ")");
-                m_gridText.setPosition(x + 3, height() - y - m_gridSize.y + 2);
-                m_game->window().draw(m_gridText);
-            }
-        }
-    }
-}
-
-void Scene_Play::sDoAction(const Action &action) {
-    if (action.type() == "START") {
-        if (action.name() == "TOGGLE_TEXTURE") { m_drawTextures = !m_drawTextures; }
-        else if (action.name() == "TOGGLE_COLLISION") { m_drawCollision = !m_drawCollision; }
-        else if (action.name() == "TOGGLE_GRID") { m_drawGrid = !m_drawGrid; }
-        else if (action.name() == "PAUSE") { setPaused(!m_paused); }
-        else if (action.name() == "QUIT") { onEnd(); }
-    } else if (action.type() == "END") {
-    }
-}
-
 
 void Scene_Play::sDebug() {
 
@@ -162,7 +168,7 @@ void Scene_Play::spawnPlayer() {
     m_player->addComponent<CAnimation>(m_game->assets().getAnimation("Stand"), true);
     m_player->addComponent<CTransform>(Vec2(224, 352));
     m_player->addComponent<CBoundingBox>(Vec2(48, 48));
-    m_player->addComponent<CGravity>(0.1);
+//    m_player->addComponent<CGravity>(0.1);
 
     //TODO: be sure to add the lifespan components to the player
 }
@@ -172,22 +178,7 @@ void Scene_Play::spawnBullet(std::shared_ptr<Entity> entity) {
     // TODO: this should spawn a bullte at the given entity, going in the direction the entity is facing
 }
 
-void Scene_Play::update() {
-
-    m_entityManager.update();
-    // TODO: implement pause functionality
-
-    sMovement();
-    sLifeSpan();
-    sCollision();
-    sAnimation();
-    sRender();
-
-}
-
 void Scene_Play::sMovement() {
-
-    Vec2 playerVelocity(0, 0);
 
 
     /*
@@ -263,7 +254,19 @@ void Scene_Play::loadLevel(const std::string &filename) {
      * now any changes you make to transform2 will be changed inside the entity
      * > auto & transform1 = entity -> get<CTransform>()
      */
+}
+
+void Scene_Play::drawLine(const Vec2 &p1, const Vec2 &p2) {
+    sf::Vertex line[] = {
+            sf::Vertex(sf::Vector2f(p1.x, p1.y)),
+            sf::Vertex(sf::Vector2f(p2.x, p2.y))
+    };
+    m_game->window().draw(line, 2, sf::Lines);
+}
 
 
+void Scene_Play::onEnd() {
+    // TODO: when the scene ends, change back to the Menu scene use m_game -> changeScene(params)
+    m_game->changeScene("MENU", std::make_shared<Scene_Menu>(m_game), true);
 }
 

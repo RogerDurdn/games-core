@@ -1,14 +1,20 @@
 #include "Assets.h"
 #include <fstream>
+#include <string>
+
 
 Assets::Assets() {}
 
-void Assets::loadFromFile(const std::string &path) {
-    std::ifstream configFile(path);
-    if (!configFile.is_open()) {
-        std::cerr << "Cannot open the file:" << path << std::endl;
+void handleLoad(bool loaded, std::string msg) {
+    if (!loaded) {
+        std::cerr << "Cannot open asset:" << msg << std::endl;
         exit(-1);
     }
+}
+
+void Assets::loadFromFile(const std::string &path) {
+    std::ifstream configFile(path + "config.txt");
+    handleLoad(configFile.is_open(), path);
     std::string type;
     while (configFile >> type) {
         std::cout << type << std::endl;
@@ -16,12 +22,23 @@ void Assets::loadFromFile(const std::string &path) {
             std::string name, pathFont;
             configFile >> name >> pathFont;
             auto aFont = sf::Font();
-            std::string pathFile = std::getenv(pathFont.c_str());
-            aFont.loadFromFile(pathFile);
+            handleLoad(aFont.loadFromFile(path + pathFont.c_str()), pathFont);
             m_fonts[name] = aFont;
         }
+        if (type == "Texture") {
+            std::string name, pathTex;
+            configFile >> name >> pathTex;
+            sf::Texture texture;
+            handleLoad(texture.loadFromFile(path + pathTex.c_str()), pathTex);
+            m_textures[name] = texture;
+        }
+        if (type == "Animation") {
+            std::string name, texName;
+            int frameCount, speed;
+            configFile >> name >> texName >> frameCount >> speed;
+            m_animations[name] = Animation(name, m_textures[texName], frameCount, speed);
+        }
     }
-
 }
 
 void Assets::addTexture(const std::string &name, const std::string &path) const {

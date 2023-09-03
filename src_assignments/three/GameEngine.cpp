@@ -67,11 +67,13 @@ void GameEngine::sUserInput() {
 void GameEngine::changeScene(const std::string &name, const std::shared_ptr<Scene> scene, bool endCurrentScene) {
     m_sceneMap[name] = scene;
     m_currentScene = name;
+    std::cout << "scene:" << name;
 }
 
 void GameEngine::update() {
     sUserInput();
     currentScene()->update();
+    m_window.display();
 }
 
 void GameEngine::quit() {

@@ -60,6 +60,8 @@ public:
     Vec2 gridToMidPixel(float gridX, float gridY, std::shared_ptr<Entity> entity);
 
     void loadLevel(const std::string &filename);
+
+    void drawLine(const Vec2 &p1, const Vec2 &p2);
 };
 
 

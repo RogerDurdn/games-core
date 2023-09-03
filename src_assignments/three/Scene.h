@@ -47,11 +47,11 @@ public:
     }
 
     size_t width() const {
-        return 120;
+        return 1280;
     }
 
     size_t height() const {
-        return 120;
+        return 768;
     }
 
     size_t currentFrame() const {
@@ -66,7 +66,5 @@ public:
         return m_actionMap;
     }
 
-    void drawLine(const Vec2 &p1, const Vec2 &p2) {
-
-    }
+    void drawLine(const Vec2 &p1, const Vec2 &p2);
 };

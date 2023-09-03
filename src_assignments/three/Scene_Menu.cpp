@@ -1,4 +1,5 @@
 #include "Scene_Menu.h"
+#include "Scene_Play.h"
 #include "GameEngine.h"
 
 Scene_Menu::Scene_Menu(GameEngine *gameEngine)
@@ -12,7 +13,6 @@ void Scene_Menu::init() {
     registerAction(sf::Keyboard::Up, "UP");
     registerAction(sf::Keyboard::Down, "DOWN");
 
-    // TODO: Register all other gameplay Actions
     m_menuText = sf::Text();
     m_menuText.setFont(m_game->assets().getFont("Menu"));
 }
@@ -22,48 +22,44 @@ void Scene_Menu::update() {
 }
 
 void Scene_Menu::sRender() {
+    m_game->window().clear(sf::Color(61, 116, 117));
+    auto &menuText = m_menuText;
     auto &window = m_game->window();
-    window.clear(sf::Color(61, 116, 117));
+    auto drawText = [&menuText, &window](const std::string &text, int size, float thick, float posX,
+                                         float posY) -> void {
+        menuText.setOutlineThickness(thick);
+        menuText.setCharacterSize(size);
+        menuText.setPosition(posX, posY);
+        menuText.setString(text);
+        window.draw(menuText);
+    };
 
-    m_menuText.setStyle(sf::Text::Bold);
-    m_menuText.setOutlineThickness(10);
-    m_menuText.setCharacterSize(75);
-    m_menuText.setString("MEGA MARIO");
-    m_menuText.setPosition(25, 20);
-    window.draw(m_menuText);
-
+    drawText("MEGA MARIO", 75, 10, 25, 20);
     m_menuText.setPosition(m_menuText.getPosition().x, m_menuText.getPosition().y + 75);
-    std::string levels[3] = {"LEVEL 1", "LEVEL 2", "LEVEL 3"};
-    for (int i = 0; i < std::size(levels); i++) {
-        auto textLevel = levels[i];
+    for (int i = 0; i < std::size(m_levels); i++) {
+        auto textLevel = m_levels[i];
         if (i == m_selectedMenuIndex) {
-            std::cout << "index:" << i << "\n";
-            textLevel = ">> " + textLevel + " <<";
+            textLevel = textLevel + " <<<";
         }
-        m_menuText.setCharacterSize(60);
-        m_menuText.setString(textLevel);
-        m_menuText.setPosition(100, m_menuText.getPosition().y + m_menuText.getCharacterSize() + 55);
-        window.draw(m_menuText);
+        auto yPos = m_menuText.getPosition().y + m_menuText.getCharacterSize() + 55;
+        drawText(textLevel, 60, 10, 100, yPos);
     }
-    m_menuText.setString("UP : W     DOWN : S   PLAY : D     BACK : ESC");
-    m_menuText.setCharacterSize(25);
-    m_menuText.setOutlineThickness(5);
-    m_menuText.setPosition(30, m_game->window().getSize().y - 65);
-    window.draw(m_menuText);
-
-    window.display();
+    drawText("UP     DOWN   PLAY : ENTER     BACK : ESC", 25, 5, 30, (m_game->window().getSize().y - 65));
 }
 
 void Scene_Menu::sDoAction(const Action &action) {
-    if (action.type() == "START") {
-        if (action.name() == "QUIT") { exit(0); }
-        else if (action.name() == "UP") {
-            m_selectedMenuIndex = (m_selectedMenuIndex == 0) ? 0 : m_selectedMenuIndex - 1;
-            std::cout << "up\n";
-        } else if (action.name() == "DOWN") {
-            std::cout << "down\n";
-            m_selectedMenuIndex = (m_selectedMenuIndex == 2) ? 2 : m_selectedMenuIndex + 1;
-        }
+    if (action.type() != "START") {
+        return;
+    }
+    if (action.name() == "QUIT") m_game->quit();
+
+    auto &i = m_selectedMenuIndex;
+    if (action.name() == "UP" && i > 0) i--;
+    if (action.name() == "DOWN" && i < std::size(m_levels) - 1) i++;
+    if (action.name() == "PLAY") {
+        m_game->changeScene("GAME",
+                            std::make_shared<Scene_Play>(m_game, m_levels[m_selectedMenuIndex]),
+                            true);
     }
 }
 
