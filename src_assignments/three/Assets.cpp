@@ -13,7 +13,7 @@ void handleLoad(bool loaded, std::string msg) {
 }
 
 void Assets::loadFromFile(const std::string &path) {
-    std::ifstream configFile(path + "config.txt");
+    std::ifstream configFile(path + "/config/config.txt");
     handleLoad(configFile.is_open(), path);
     std::string type;
     while (configFile >> type) {
