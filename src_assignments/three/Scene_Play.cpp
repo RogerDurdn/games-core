@@ -38,11 +38,12 @@ void Scene_Play::update() {
 }
 
 void Scene_Play::sRender() {
+    auto backgroundColor = sf::Color(4, 156, 216);
     // color the background darker, so you know that the game is paused
 //    if (!m_paused) {
 //        m_game->window().clear(sf::Color(100, 100, 255));
 //    } else {
-    m_game->window().clear(sf::Color(50, 50, 150));
+    m_game->window().clear(backgroundColor);
 //    }
 
     //set the viewport of the window to be centered on the player if it's far enough right
@@ -77,7 +78,7 @@ void Scene_Play::sRender() {
                 rect.setSize(sf::Vector2f(box.size.x - 1, box.size.y - 1));
                 rect.setOrigin(sf::Vector2f(box.halfSize.x - 1, box.halfSize.y - 1));
                 rect.setPosition(transform.pos.x, transform.pos.y);
-                rect.setFillColor(sf::Color(50, 50, 150));
+                rect.setFillColor(backgroundColor);
                 rect.setOutlineColor(sf::Color(255, 255, 255));
                 rect.setOutlineThickness(1);
                 m_game->window().draw(rect);
@@ -225,12 +226,17 @@ void Scene_Play::loadLevel(const std::string &filename) {
     loadLevelConfig(filename);
     spawnPlayer();
 
-    for (auto misc: m_miscConfig) {
-        auto &animation = m_game->assets().getAnimation(misc.NAME_ANI);
-        auto miscEntity = m_entityManager.addEntity(misc.TYPE);
-        miscEntity->addComponent<CAnimation>(animation, true);
-        miscEntity->addComponent<CTransform>(gridToMidPixel(misc.GX, misc.GY, miscEntity));
-        miscEntity->addComponent<CBoundingBox>(animation.getSize());
+    try {
+        for (auto misc: m_miscConfig) {
+            auto &animation = m_game->assets().getAnimation(misc.NAME_ANI);
+            auto miscEntity = m_entityManager.addEntity(misc.TYPE);
+            miscEntity->addComponent<CAnimation>(animation, true);
+            miscEntity->addComponent<CTransform>(gridToMidPixel(misc.GX, misc.GY, miscEntity));
+            if (misc.TYPE != "Dec") miscEntity->addComponent<CBoundingBox>(animation.getSize());
+        }
+    } catch (std::exception &e) {
+        std::cout << "error on:" << e.what();
+        exit(-1);
     }
 
     /*
