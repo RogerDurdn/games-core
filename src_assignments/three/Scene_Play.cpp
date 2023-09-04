@@ -161,7 +161,7 @@ void Scene_Play::sLifeSpan() {
     m_currentFrame++;
     for (auto &e: m_entityManager.getEntities()) {
         auto lifeSpan = e->getComponent<CLifespan>();
-        if (lifeSpan.frameCreated == 0) continue;
+        if (!lifeSpan.has) continue;
         if (m_currentFrame - lifeSpan.frameCreated > lifeSpan.lifespan) e->destroy();
     }
     // TODO: check lifespan of entities that have they, and destroy them if they go over
@@ -189,6 +189,17 @@ void Scene_Play::sCollision() {
      * TODO: Check to see if the player has fallen down a hole (y > height())
      * TODO: Don't let the player walk off the left side of the map
      */
+    auto physics = Physics();
+    // bullets collision
+    for (auto &bullet: m_entityManager.getEntities("bullet")) {
+        for (auto &e: m_entityManager.getEntities()) {
+            if (e->tag() == "bullet" || e->tag() == "Ground" || e->tag() == "Dec" || e->tag() == "player") continue;
+            if (physics.IsCollision(bullet, e)) {
+                if (e->tag() == "Question" || e->tag() == "PipeTall") bullet->destroy();
+                if (e->tag() == "Brick") bullet->destroy(), e->destroy();
+            }
+        }
+    }
 }
 
 
@@ -218,7 +229,7 @@ void Scene_Play::spawnBullet(std::shared_ptr<Entity> entity) {
     auto bulletDuration = 60;
     auto &pT = entity->getComponent<CTransform>();
     std::cout << "bullet from:" << pT.pos.x << "," << pT.pos.y << "\n";
-    auto velocity = pT.pos.normalize(Vec2(pT.pos.x + pT.scale.x, pT.pos.y)) * bulletSpeed;
+    auto velocity = pT.pos.normalize(Vec2(pT.pos.x + pT.scale.x * m_plyConf.GX, pT.pos.y)) * bulletSpeed;
     auto bullet = m_entityManager.addEntity("bullet");
     bullet->addComponent<CAnimation>(m_game->assets().getAnimation(m_plyConf.WEAPON), true);
     bullet->addComponent<CTransform>(pT.pos, velocity, 1);
@@ -281,7 +292,7 @@ void Scene_Play::loadLevel(const std::string &filename) {
 
     for (auto misc: m_miscConfig) {
         auto &animation = m_game->assets().getAnimation(misc.NAME_ANI);
-        auto miscEntity = m_entityManager.addEntity(misc.TYPE);
+        auto miscEntity = m_entityManager.addEntity(misc.NAME_ANI);
         miscEntity->addComponent<CAnimation>(animation, true);
         miscEntity->addComponent<CTransform>(gridToMidPixel(misc.GX, misc.GY, miscEntity));
         if (misc.TYPE != "Dec") miscEntity->addComponent<CBoundingBox>(animation.getSize());
