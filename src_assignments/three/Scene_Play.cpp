@@ -249,6 +249,10 @@ void Scene_Play::sCollision() {
         pT.velocity.y = 0;
         pT.pos.y = pB.halfSize.y;
     }
+    if (pT.pos.y > height()) {
+        m_player->destroy();
+        spawnPlayer();
+    }
 
     // player elements collision
     for (auto &tile: m_entityManager.getEntities("Tile")) {
