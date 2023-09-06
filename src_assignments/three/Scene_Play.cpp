@@ -22,7 +22,6 @@ void Scene_Play::init(const std::string &levelPath) {
     registerAction(sf::Keyboard::G, "TOGGLE_GRID");
     //player
     registerAction(sf::Keyboard::W, "PLAYER_UP");
-    registerAction(sf::Keyboard::S, "PLAYER_DOWN");
     registerAction(sf::Keyboard::D, "PLAYER_RIGHT");
     registerAction(sf::Keyboard::A, "PLAYER_LEFT");
     registerAction(sf::Keyboard::Space, "PLAYER_SHOOT");
@@ -84,7 +83,7 @@ void Scene_Play::sRender() {
                 rect.setSize(sf::Vector2f(box.size.x - 1, box.size.y - 1));
                 rect.setOrigin(sf::Vector2f(box.halfSize.x - 1, box.halfSize.y - 1));
                 rect.setPosition(transform.pos.x, transform.pos.y);
-                rect.setFillColor(backgroundColor);
+                rect.setFillColor(sf::Color(0, 0, 0, 0));
                 rect.setOutlineColor(sf::Color(255, 255, 255));
                 rect.setOutlineThickness(1);
                 m_game->window().draw(rect);
@@ -114,16 +113,54 @@ void Scene_Play::sRender() {
     }
 }
 
+void Scene_Play::sMovement() {
+    /*
+     * TODO: Implement player movement / jumping based on its CInput component
+     * TODO: Implement gravity's effect on the player
+     * TODO: Implement the maximum player speed in both GX and GY directions
+     * TODO: Setting and entity's scale.x to -1/1 will make it face to the left/right
+     */
+    // TODO: if the player is moving faster than max speed in any direction, set its speed in that direction to the max speed
+    auto &pI = m_player->getComponent<CInput>();
+    auto &pT = m_player->getComponent<CTransform>();
+    auto &pS = m_player->getComponent<CState>();
+    Vec2 velocity(0, pT.velocity.y);
+    if (pI.up && pI.canJump) {
+        velocity.y = m_plyConf.SPEED_JUMP;
+        pI.canJump = false;
+        pS.state = "jumping";
+        m_player->addComponent<CAnimation>(m_game->assets().getAnimation("Jump"), true);
+    }
+    if (pI.left) velocity.x += -m_plyConf.SPEED_X, pT.scale = Vec2(-1, 1);
+    if (pI.right) velocity.x += m_plyConf.SPEED_X, pT.scale = Vec2(1, 1);
+    pT.velocity = velocity;
+    for (auto e: m_entityManager.getEntities()) {
+        auto &eG = e->getComponent<CGravity>();
+        auto &eT = e->getComponent<CTransform>();
+        if (eG.has) eT.velocity.y += eG.gravity;
+        if (e->tag() == "player")eT.prevPos = eT.pos;
+        eT.pos += eT.velocity;
+    }
+    if (pS.state != "jumping") {
+        if (velocity.x != 0) {
+            m_player->addComponent<CAnimation>(m_game->assets().getAnimation("Run"), true);
+            pS.state = "running";
+        }
+        if (pT.pos.x == pT.prevPos.x)m_player->addComponent<CAnimation>(m_game->assets().getAnimation("Stand"), true);
+    }
+
+}
+
+
 void Scene_Play::sDoAction(const Action &action) {
     auto scenePlay = this;
     auto &player = m_player;
     auto handlePlayerInput = [&player, &scenePlay](std::string actName, bool apply) -> void {
         auto &playerInput = player->getComponent<CInput>();
         if (actName.find("PLAYER") != std::string::npos) {
-            if (actName == "PLAYER_UP") playerInput.up = apply;
-            if (actName == "PLAYER_DOWN") playerInput.down = apply;
             if (actName == "PLAYER_RIGHT") playerInput.right = apply;
             if (actName == "PLAYER_LEFT") playerInput.left = apply;
+            if (actName == "PLAYER_UP") playerInput.up = apply;
             if (actName == "PLAYER_SHOOT") {
                 if (apply && playerInput.canShoot) scenePlay->spawnBullet(player);
                 playerInput.canShoot = !apply;
@@ -192,11 +229,64 @@ void Scene_Play::sCollision() {
     auto physics = Physics();
     // bullets collision
     for (auto &bullet: m_entityManager.getEntities("bullet")) {
-        for (auto &e: m_entityManager.getEntities()) {
-            if (e->tag() == "bullet" || e->tag() == "Ground" || e->tag() == "Dec" || e->tag() == "player") continue;
-            if (physics.IsCollision(bullet, e)) {
-                if (e->tag() == "Question" || e->tag() == "PipeTall") bullet->destroy();
-                if (e->tag() == "Brick") bullet->destroy(), e->destroy();
+        for (auto &tile: m_entityManager.getEntities("Tile")) {
+            if (physics.IsCollision(physics.GetOverlap(bullet, tile))) {
+                auto tAnim = tile->getComponent<CAnimation>().animation.getName();
+                if (tAnim == "Brick") tile->destroy();
+                bullet->destroy();
+            }
+        }
+    }
+
+    // player collision
+    auto &pT = m_player->getComponent<CTransform>();
+    auto &pB = m_player->getComponent<CBoundingBox>();
+    auto &pI = m_player->getComponent<CInput>();
+
+    // player environment collision
+    if ((pT.pos.x - pB.halfSize.x) < 0) pT.pos.x = pB.halfSize.x;
+    if ((pT.pos.y - pB.halfSize.y) < 0) {
+        pT.velocity.y = 0;
+        pT.pos.y = pB.halfSize.y;
+    }
+
+    // player elements collision
+    for (auto &tile: m_entityManager.getEntities("Tile")) {
+        auto overlap = physics.GetOverlap(m_player, tile);
+        if (!physics.IsCollision(overlap))continue;
+        auto &tT = tile->getComponent<CTransform>();
+        auto prevOverlap = physics.GetPreviousOverlap(m_player, tile);
+
+        std::cout << overlap.x << " with y:" << overlap.y << std::endl;
+        if (prevOverlap.y > 0 && prevOverlap.x > 0) {
+            pT.pos.x = pT.prevPos.x;
+            return;
+        }
+        if (prevOverlap.y > 0) {
+            pT.velocity.x = 0;
+            bool left = tT.pos.x > pT.pos.x;
+            bool right = !left;
+            if (left) pT.pos.x -= overlap.x, pI.right = false;
+            if (right) pT.pos.x += overlap.x, pI.left = false;
+        }
+        if (prevOverlap.x > 0) {
+            pT.velocity.y = 0;
+            bool below = tT.pos.y < pT.pos.y;
+            bool above = !below;
+            if (above) {
+                pT.pos.y -= overlap.y;
+                auto &pS = m_player->getComponent<CState>();
+                if (pS.state != "running") {
+                    pS.state = "stand";
+                    m_player->addComponent<CAnimation>(m_game->assets().getAnimation("Stand"), true);
+                }
+                m_player->getComponent<CInput>().canJump = true;
+            }
+            if (below) {
+                pT.pos.y += overlap.y;
+                if (tile->getComponent<CAnimation>().animation.getName() == "Brick") {
+                    tile->destroy();
+                }
             }
         }
     }
@@ -215,9 +305,10 @@ void Scene_Play::spawnPlayer() {
     m_player->addComponent<CAnimation>(animation, true);
     m_player->addComponent<CTransform>(
             gridToMidPixel(m_plyConf.GX, m_plyConf.GY, m_player),
-            Vec2(m_plyConf.SPEED_X, m_plyConf.SPEED_X), 0); // here we set the position
+            Vec2(m_plyConf.SPEED_X, 0), 0); // here we set the position
     m_player->addComponent<CBoundingBox>(Vec2(m_plyConf.CW, m_plyConf.CH));
     m_player->addComponent<CGravity>(m_plyConf.GRAVITY);
+    m_player->addComponent<CState>();
     m_player->addComponent<CInput>();
 
     //TODO: be sure to add the lifespan components to the player
@@ -225,41 +316,20 @@ void Scene_Play::spawnPlayer() {
 
 
 void Scene_Play::spawnBullet(std::shared_ptr<Entity> entity) {
-    auto bulletSpeed = 5.0f;
+    auto bulletSpeed = 10.0f;
     auto bulletDuration = 60;
     auto &pT = entity->getComponent<CTransform>();
-    std::cout << "bullet from:" << pT.pos.x << "," << pT.pos.y << "\n";
+    auto &pB = entity->getComponent<CBoundingBox>();
+    auto origin = Vec2(pT.pos.x + (pB.halfSize.x * pT.scale.x), pT.pos.y);
+    std::cout << "bullet from:" << origin.x << "," << origin.y << "\n";
     auto velocity = pT.pos.normalize(Vec2(pT.pos.x + pT.scale.x * m_plyConf.GX, pT.pos.y)) * bulletSpeed;
+
     auto bullet = m_entityManager.addEntity("bullet");
     bullet->addComponent<CAnimation>(m_game->assets().getAnimation(m_plyConf.WEAPON), true);
-    bullet->addComponent<CTransform>(pT.pos, velocity, 1);
+    bullet->addComponent<CTransform>(origin, velocity, 1);
     bullet->addComponent<CBoundingBox>(bullet->getComponent<CAnimation>().animation.getSize());
     bullet->addComponent<CLifespan>(bulletDuration, m_currentFrame);
-    // TODO: this should spawn a bullet at the given entity, going in the direction the entity is facing
 }
-
-void Scene_Play::sMovement() {
-    /*
-     * TODO: Implement player movement / jumping based on its CInput component
-     * TODO: Implement gravity's effect on the player
-     * TODO: Implement the maximum player speed in both GX and GY directions
-     * TODO: Setting and entity's scale.x to -1/1 will make it face to the left/right
-     */
-    // TODO: if the player is moving faster than max speed in any direction, set its speed in that direction to the max speed
-    auto &playerInput = m_player->getComponent<CInput>();
-    auto &playerTransform = m_player->getComponent<CTransform>();
-    Vec2 velocity(0, 0);
-    if (playerInput.down) velocity.y = m_plyConf.SPEED_X;
-    if (playerInput.up) velocity.y = -m_plyConf.SPEED_X;
-    if (playerInput.left) velocity.x = -m_plyConf.SPEED_X, playerTransform.scale = Vec2(-1, 1);
-    if (playerInput.right)velocity.x = m_plyConf.SPEED_X, playerTransform.scale = Vec2(1, 1);
-    playerTransform.velocity = velocity;
-    for (auto e: m_entityManager.getEntities()) {
-        e->getComponent<CTransform>().pos += e->getComponent<CTransform>().velocity;
-
-    }
-}
-
 
 Vec2 Scene_Play::gridToMidPixel(float gridX, float gridY, std::shared_ptr<Entity> entity) {
     /* TODO:
@@ -292,10 +362,14 @@ void Scene_Play::loadLevel(const std::string &filename) {
 
     for (auto misc: m_miscConfig) {
         auto &animation = m_game->assets().getAnimation(misc.NAME_ANI);
-        auto miscEntity = m_entityManager.addEntity(misc.NAME_ANI);
+        auto miscEntity = m_entityManager.addEntity(misc.TYPE);
         miscEntity->addComponent<CAnimation>(animation, true);
-        miscEntity->addComponent<CTransform>(gridToMidPixel(misc.GX, misc.GY, miscEntity));
-        if (misc.TYPE != "Dec") miscEntity->addComponent<CBoundingBox>(animation.getSize());
+        auto pos = gridToMidPixel(misc.GX, misc.GY, miscEntity);
+        miscEntity->addComponent<CTransform>(pos);
+        if (misc.TYPE != "Dec") {
+            miscEntity->getComponent<CTransform>().prevPos = pos;
+            miscEntity->addComponent<CBoundingBox>(animation.getSize());
+        }
     }
     spawnPlayer();
 

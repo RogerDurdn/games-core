@@ -8,7 +8,7 @@ typedef std::string Line;
 
 class Physics {
 public:
-    bool IsCollision(std::shared_ptr<Entity> a, std::shared_ptr<Entity> b);
+    bool IsCollision(Vec2 overlap) const;
 
     bool IsIntersect(Line, Line) const;
 

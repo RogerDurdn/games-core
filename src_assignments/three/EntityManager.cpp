@@ -19,10 +19,6 @@ void EntityManager::update() {
 void EntityManager::removeDeadEntities(EntityVec &vec) {
     auto isNotActive = [](std::shared_ptr<Entity> e) { return !e->m_active; };
     vec.erase(std::remove_if(vec.begin(), vec.end(), isNotActive), vec.end());
-//    vec.erase(
-//            std::remove_if(vec.begin(), vec.end(),[](std::shared_ptr<Entity> e) {
-//                               return !e->m_active;}),
-//            vec.end());
 }
 
 

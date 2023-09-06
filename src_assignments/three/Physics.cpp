@@ -20,11 +20,17 @@ Vec2 Physics::GetOverlap(std::shared_ptr<Entity> a, std::shared_ptr<Entity> b) {
 
 Vec2 Physics::GetPreviousOverlap(std::shared_ptr<Entity> a, std::shared_ptr<Entity> b) {
     // TODO: return the previous overlap rectangle size of the bounding boxes of entity a and b
-    // previous overlap uses the entity's previous position
-    return Vec2();
+    auto aPos = a->getComponent<CTransform>().prevPos;
+    auto bPos = b->getComponent<CTransform>().prevPos;
+    auto aHalfSize = a->getComponent<CBoundingBox>().halfSize;
+    auto bHalfSize = b->getComponent<CBoundingBox>().halfSize;
+
+    auto delta = Vec2(std::abs(bPos.x - aPos.x), std::abs(bPos.y - aPos.y));
+    auto overlapX = aHalfSize.x + bHalfSize.x - delta.x;
+    auto overlapY = aHalfSize.y + bHalfSize.y - delta.y;
+    return Vec2(overlapX, overlapY);
 }
 
-bool Physics::IsCollision(std::shared_ptr<Entity> a, std::shared_ptr<Entity> b) {
-    auto overlap = GetOverlap(a, b);
+bool Physics::IsCollision(Vec2 overlap) const {
     return overlap.x > 0 && overlap.y > 0;
 }
