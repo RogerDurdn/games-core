@@ -51,7 +51,7 @@ void GameEngine::sUserInput() {
 //            }
 //        }
         if (event.type == sf::Event::KeyPressed || event.type == sf::Event::KeyReleased) {
-            std::cout << "keyPressed: " << event.type << std::endl;
+//            std::cout << "keyPressed: " << event.type << std::endl;
             // if the current scene does not have an action associated with this key, skip the event
             if (currentScene()->getActionMap().find(event.key.code) == currentScene()->getActionMap().end()) {
                 continue;
