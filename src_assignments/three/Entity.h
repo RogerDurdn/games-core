@@ -52,6 +52,14 @@ public:
         return component;
     }
 
+    template<typename T, typename... TArgs>
+    Entity *with(TArgs &&... mArgs) {
+        auto &component = getComponent<T>();
+        component = T(std::forward<TArgs>(mArgs)...);
+        component.has = true;
+        return this;
+    }
+
     template<typename T>
     T &getComponent() {
         return std::get<T>(m_components);

@@ -52,13 +52,6 @@ public:
     CInput() {}
 };
 
-class CCollision : public Component {
-public:
-    float radius = 0;
-
-    CCollision(float r) : radius(r) {}
-};
-
 class CBoundingBox : public Component {
 public:
     Vec2 size;
@@ -74,11 +67,16 @@ class CAnimation : public Component {
 public:
     Animation animation;
     bool repeat = false;
+    bool idle = false;
 
     CAnimation() {}
 
     CAnimation(const Animation &a, bool show)
             : animation(a), repeat(show) {
+    }
+
+    CAnimation(const Animation &a, bool show, bool idle)
+            : animation(a), repeat(show), idle(idle) {
     }
 
 };
