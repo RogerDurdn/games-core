@@ -21,6 +21,11 @@ The project is intended to be a starting point for learning game development wit
 ### Assigment Two
 ![secondAss](https://github.com/RogerDurdn/games-core/assets/35942425/1c22c932-3e59-4d3c-9db5-7e8160112812)
 
+### Assigment Three
+
+![thrash](https://github.com/RogerDurdn/games-core/assets/35942425/eb73bbb8-2d3f-486e-aec5-0b20fff4490a)
+
+
 
 ## Deployment
 
