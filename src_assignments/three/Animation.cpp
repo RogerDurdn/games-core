@@ -18,23 +18,13 @@ Animation::Animation(const std::string &name, const sf::Texture &texture, size_t
     m_sprite.setTextureRect(sf::IntRect(std::floor(m_currentFrame) * m_size.x, 0, m_size.x, m_size.y));
 }
 
-// updates the animation to show the next frame, depending on its speed
-// animation loops when it reaches the end
 void Animation::update() {
-    if (m_speed == 0) return;
-
     m_currentFrame++;
-    if (m_currentFrame % m_speed == 0) {
-        auto frame = m_currentFrame / m_speed;
-        std::cout << "frame:" << frame << std::endl;
-        if (frame >= m_frameCount)frame = 1, m_currentFrame = m_speed;
-        m_sprite.setTextureRect(
-                sf::IntRect(std::floor(frame) * m_size.x, 0, m_size.x, m_size.y));
+    if (m_currentFrame % m_speed != 0) return;
+    if (m_currentFrame / m_speed == m_frameCount) {
+        m_currentFrame = 0;
     }
-
-    // TODO: 1) Calculate the correct frame of animation to play based on currentFrame and speed
-    // 2) set the texture rectangle properly (see constructor for sample)
-
+    m_sprite.setTextureRect(sf::IntRect(std::floor(m_currentFrame / m_speed) * m_size.x, 0, m_size.x, m_size.y));
 }
 
 const Vec2 &Animation::getSize() const {
@@ -49,9 +39,6 @@ sf::Sprite &Animation::getSprite() {
     return m_sprite;
 }
 
-
 bool Animation::hasEnded() const {
-    // TODO: detect when animation has ended (last frame was played) and return true
-    return m_speed > 0 && (m_frameCount - 1 == (m_currentFrame / m_speed));
+    return m_frameCount - 1 == (m_currentFrame / m_speed);
 }
-

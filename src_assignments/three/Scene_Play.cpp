@@ -33,7 +33,6 @@ void Scene_Play::init(const std::string &levelPath) {
 
 void Scene_Play::update() {
     m_entityManager.update();
-    // TODO: implement pause functionality
     sMovement();
     sLifeSpan();
     sCollision();
@@ -50,14 +49,11 @@ void Scene_Play::sRender() {
     m_game->window().clear(backgroundColor);
 //    }
 
-    //set the viewport of the window to be centered on the player if it's far enough right
     auto &pPos = m_player->getComponent<CTransform>().pos;
     float windowCenterX = std::max(m_game->window().getSize().x / 2.0f, pPos.x);
     sf::View view = m_game->window().getView();
     view.setCenter(windowCenterX, m_game->window().getSize().y - view.getCenter().y);
     m_game->window().setView(view);
-
-    // draw all entity textures / animations
 
     if (m_drawTextures) {
         for (auto e: m_entityManager.getEntities()) {
@@ -72,7 +68,7 @@ void Scene_Play::sRender() {
             }
         }
     }
-    // draw all entity collision bounding boxes with a rectangle shape
+
     if (m_drawCollision) {
         for (auto e: m_entityManager.getEntities()) {
             if (e->hasComponent<CBoundingBox>()) {
@@ -90,7 +86,6 @@ void Scene_Play::sRender() {
         }
     }
 
-    // draw the grid so debug can be easy
     if (m_drawGrid) {
         float leftX = m_game->window().getView().getCenter().x - width() / 2;
         float rightX = leftX + width() + m_gridSize.x;
@@ -134,6 +129,7 @@ void Scene_Play::sMovement() {
     }
     if (pS.state != "jumping") {
         pS.state = velocity.x != 0 ? "run" : "stand";
+        if (velocity.y != 0) pS.state = "jumping";
     }
 
 }
@@ -171,13 +167,6 @@ void Scene_Play::sDoAction(const Action &action) {
 }
 
 void Scene_Play::sAnimation() {
-// TODO: complete te animation class code first
-
-/*
- * TODO: set the animation of the player based on its CState component
- * TODO: for each entity with animation, call entity->get;component<CAnimation>().animation.update()
- * if the animation is not repeated, and it has ended, destroy the entity.
- */
     auto &currentAnimation = m_player->getComponent<CAnimation>().animation.getName();
     auto &state = m_player->getComponent<CState>().state;
     if (state != currentAnimation) {
@@ -186,13 +175,9 @@ void Scene_Play::sAnimation() {
 
     for (auto &e: m_entityManager.getEntities()) {
         auto &eA = e->getComponent<CAnimation>();
-        if (eA.has && !eA.animation.hasEnded()) {
-            eA.animation.update();
-            if (!eA.repeat && eA.animation.hasEnded()) {
-                if (eA.animation.getName() == "questionX") continue;
-                e->destroy();
-            }
-        }
+        if (!eA.has) continue;
+        eA.animation.update();
+        if (!eA.repeat && eA.animation.hasEnded()) e->destroy();
     }
 }
 
@@ -204,9 +189,9 @@ void Scene_Play::sLifeSpan() {
         if (m_currentFrame - lifeSpan.frameCreated > lifeSpan.lifespan) {
             auto &eA = e->getComponent<CAnimation>();
             if (eA.animation.getName() == "brick") {
-                auto exp = m_entityManager.addEntity("explosion");
-                exp->addComponent<CAnimation>(m_game->assets().getAnimation("explosion"), false);
-                exp->addComponent<CTransform>(e->getComponent<CTransform>().pos, Vec2(), 1);
+                m_entityManager.addEntity("explosion")
+                        ->with<CAnimation>(m_game->assets().getAnimation("explosion"), false)
+                        ->with<CTransform>(e->getComponent<CTransform>().pos);
             }
             e->destroy();
         }
@@ -246,7 +231,6 @@ void Scene_Play::sCollision() {
         spawnPlayer();
     }
 
-    // player elements collision
     for (auto &tile: m_entityManager.getEntities("Tile")) {
         auto overlap = physics.GetOverlap(m_player, tile);
         if (!physics.IsCollision(overlap))continue;
@@ -281,7 +265,7 @@ void Scene_Play::sCollision() {
                 auto animName = tile->getComponent<CAnimation>().animation.getName();
                 if (animName == "brick") tile->addComponent<CLifespan>(1, m_currentFrame);
                 if (animName == "question") {
-                    tile->addComponent<CAnimation>(m_game->assets().getAnimation("questionX"), false);
+                    tile->addComponent<CAnimation>(m_game->assets().getAnimation("questionDone"), true);
                     auto coin = m_entityManager.addEntity("coin");
                     coin->addComponent<CTransform>(Vec2(tT.pos.x, tT.pos.y - m_gridSize.y));
                     coin->addComponent<CAnimation>(m_game->assets().getAnimation("coin"), false);
@@ -297,7 +281,6 @@ void Scene_Play::sDebug() {
 }
 
 void Scene_Play::spawnPlayer() {
-
     m_player = m_entityManager.addEntity("player");
     auto &animation = m_game->assets().getAnimation("stand");
     m_player->addComponent<CAnimation>(animation, true);
@@ -362,7 +345,6 @@ void Scene_Play::drawLine(const Vec2 &p1, const Vec2 &p2) {
 
 
 void Scene_Play::onEnd() {
-    // TODO: when the scene ends, change back to the Menu scene use m_game -> changeScene(params)
     m_game->changeScene("MENU", std::make_shared<Scene_Menu>(m_game), true);
 }
 
@@ -376,7 +358,6 @@ void Scene_Play::loadLevelConfig(const std::string &fileName) {
     }
     std::string type;
     while (configFile >> type) {
-//        std::cout << type << std::endl;
         if (type == "Tile" || type == "Dec") {
             std::string animationName;
             float GX, GY;
