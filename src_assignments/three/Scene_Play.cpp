@@ -14,6 +14,16 @@ Scene_Play::Scene_Play(GameEngine *gameEngine, const std::string &levelPath)
     init(m_levelPath);
 }
 
+bool IsInside(Vec2 pos, std::shared_ptr<Entity> e) {
+    auto ePos = e->getComponent<CTransform>().pos;
+    auto size = e->getComponent<CAnimation>().animation.getSize();
+
+    float dx = fabs(pos.x - ePos.x);
+    float dy = fabs(pos.y - ePos.y);
+    return dx < size.x / 2 && dy < size.y / 2;
+}
+
+
 void Scene_Play::init(const std::string &levelPath) {
     registerAction(sf::Keyboard::P, "PAUSE");
     registerAction(sf::Keyboard::Escape, "QUIT");
@@ -33,6 +43,7 @@ void Scene_Play::init(const std::string &levelPath) {
 
 void Scene_Play::update() {
     m_entityManager.update();
+    sDrag();
     sMovement();
     sLifeSpan();
     sCollision();
@@ -105,6 +116,11 @@ void Scene_Play::sRender() {
             }
         }
     }
+
+    m_circle.setRadius(4);
+    m_circle.setOrigin(2, 2);
+    m_circle.setFillColor(sf::Color::Red);
+    m_game->window().draw(m_circle);
 }
 
 void Scene_Play::sMovement() {
@@ -163,6 +179,41 @@ void Scene_Play::sDoAction(const Action &action) {
     }
     if (actType == "END") {
         handlePlayerInput(actName, false);
+    }
+
+
+    if (actName == "mouseLeft") {
+        auto pos = posRelativeToWorld(action.pos());
+        std::cout << "pos m: " << pos.x << " " << pos.y << std::endl;
+        for (auto &e: m_entityManager.getEntities()) {
+            auto &eD = e->getComponent<CDraggable>();
+            if (eD.has && IsInside(pos, e)) {
+                eD.isDragged = !eD.isDragged;
+            }
+        }
+    }
+
+    if (actName == "mouseMove") {
+        auto pos = posRelativeToWorld(action.pos());
+        m_circle.setPosition(pos.x, pos.y);
+        m_mouse_point = pos;
+    }
+}
+
+Vec2 Scene_Play::posRelativeToWorld(Vec2 pos) {
+    auto view = m_game->window().getView();
+    auto posX = view.getCenter().x - (m_game->window().getSize().x / 2);
+    auto posY = view.getCenter().y - (m_game->window().getSize().y / 2);
+    return Vec2(pos.x + posX, pos.y + posY);
+}
+
+
+void Scene_Play::sDrag() {
+    for (auto &e: m_entityManager.getEntities()) {
+        auto &eD = e->getComponent<CDraggable>();
+        if (eD.has && eD.isDragged) {
+            e->getComponent<CTransform>().pos = m_mouse_point;
+        }
     }
 }
 
@@ -331,6 +382,7 @@ void Scene_Play::loadLevel(const std::string &filename) {
             miscEntity->getComponent<CTransform>().prevPos = pos;
             miscEntity->addComponent<CBoundingBox>(animation.getSize());
         }
+        if (misc.TYPE == "Tile") miscEntity->addComponent<CDraggable>();
     }
     spawnPlayer();
 }

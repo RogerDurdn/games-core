@@ -75,10 +75,6 @@ public:
             : animation(a), repeat(show) {
     }
 
-    CAnimation(const Animation &a, bool show, bool idle)
-            : animation(a), repeat(show), idle(idle) {
-    }
-
 };
 
 class CGravity : public Component {
@@ -99,3 +95,16 @@ public:
 
     CState(const std::string &s) : state(s) {}
 };
+
+
+class CDraggable : public Component {
+
+public:
+    bool isDragged = false;
+
+    CDraggable() {}
+};
+
+
+
+
