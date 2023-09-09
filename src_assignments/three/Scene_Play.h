@@ -29,6 +29,8 @@ protected:
     bool m_drawGrid = false;
     const Vec2 m_gridSize = {64, 64};
     sf::Text m_gridText;
+    sf::CircleShape m_circle;
+    Vec2 m_mouse_point;
 
     Scene_Play();
 
@@ -59,6 +61,8 @@ public:
 
     void sDebug();
 
+    void sDrag();
+
     void spawnPlayer();
 
     void spawnBullet(std::shared_ptr<Entity> entity);
@@ -70,6 +74,8 @@ public:
     void drawLine(const Vec2 &p1, const Vec2 &p2);
 
     void loadLevelConfig(const std::string &filePath);
+
+    Vec2 posRelativeToWorld(Vec2 pos);
 };
 
 

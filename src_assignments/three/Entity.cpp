@@ -10,7 +10,9 @@ Entity::Entity(const size_t id, const std::string &tag) : m_id(id), m_tag(tag) {
             CBoundingBox(),
             CAnimation(),
             CGravity(),
-            CState());
+            CState(),
+            CDraggable()
+    );
 }
 
 bool Entity::isActive() const {
