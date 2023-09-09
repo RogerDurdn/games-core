@@ -25,6 +25,9 @@ The project is intended to be a starting point for learning game development wit
 
 ![thrash](https://github.com/RogerDurdn/games-core/assets/35942425/eb73bbb8-2d3f-486e-aec5-0b20fff4490a)
 
+#### Live edit on levels
+
+![threeMove](https://github.com/RogerDurdn/games-core/assets/35942425/a926a163-875b-4993-ac9f-6ab8306b8a36)
 
 
 ## Deployment
