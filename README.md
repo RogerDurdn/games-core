@@ -6,9 +6,9 @@ The project is intended to be a starting point for learning game development wit
 
 ## Tech Stack
 
-**Language:** C++
+**Language:** [C++](https://cplusplus.com/)
 
-**Multimedia-lib:** SFML
+**Multimedia-lib:** [SFML](https://www.sfml-dev.org/index.php)
 
 **Testing-lib:** [Gogle test](https://github.com/google/googletest)
 
