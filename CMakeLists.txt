@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.26)
 project(core-games)
 add_subdirectory(src_assignments/two)
 add_subdirectory(src_assignments/three)
+add_subdirectory(src_assignments/four)
 
 # system
 set(CMAKE_CXX_STANDARD 17)
@@ -27,7 +28,7 @@ set(files
         src_assignments/one/one.cpp
 )
 
-foreach(target file IN ZIP_LISTS targets files)
-    add_executable(${target} ${file} )
+foreach (target file IN ZIP_LISTS targets files)
+    add_executable(${target} ${file})
     target_link_libraries(${target} sfml-system sfml-window sfml-graphics sfml-audio sfml-network)
-endforeach()
+endforeach ()
