@@ -9,28 +9,38 @@
 class Scene_Zelda : public Scene {
 
     struct PlayerConfig {
-        //    2    3  48  48     5          -20        20       0.75
-        float GX, GY, CW, CH, SPEED_X, SPEED_JUMP, SPEED_MAX, GRAVITY;
-        std::string WEAPON;// Buster
+        float X, Y, CX, CY, SPEED, HEALT;
+        std::string WEAPON;
     };
 
-    struct MiscConfig {
-        std::string TYPE, NAME_ANI;
-        float GX, GY;
+    struct TileConfig {
+        std::string NAME_ANI;
+        int RX, RY, TX, TY;
+        bool BM, BV;
     };
+
+    struct NpcConfig {
+        std::string NAME_ANI, AI;
+        int RX, RY, TX, TY, H, D, PPN;
+        bool BM, BV;
+        float S;
+        std::vector<Vec2> PatrolPositions;
+    };
+
 
 protected:
     std::shared_ptr<Entity> m_player;
     std::string m_levelPath;
     PlayerConfig m_plyConf;
-    std::vector<MiscConfig> m_miscConfig;
+    std::vector<TileConfig> m_tileConfig;
+    std::vector<NpcConfig> m_npcConfig;
     bool m_drawTextures = true;
     bool m_drawCollision = false;
+    //TODO: change for follow
     bool m_drawGrid = false;
+    bool m_follow = false;
     const Vec2 m_gridSize = {64, 64};
     sf::Text m_gridText;
-    sf::CircleShape m_circle;
-    Vec2 m_mouse_point;
 
     Scene_Zelda();
 
@@ -61,13 +71,17 @@ public:
 
     void sDebug();
 
-    void sDrag();
+    void sAI();
+
+    void sCamera();
 
     void spawnPlayer();
 
-    void spawnBullet(std::shared_ptr<Entity> entity);
+    void spawnSword(std::shared_ptr<Entity> entity);
 
     Vec2 gridToMidPixel(float gridX, float gridY, std::shared_ptr<Entity> entity);
+
+    Vec2 getPosition(int rx, int ry, int tx, int ty)const;
 
     void loadLevel(const std::string &filename);
 
@@ -75,7 +89,6 @@ public:
 
     void loadLevelConfig(const std::string &filePath);
 
-    Vec2 posRelativeToWorld(Vec2 pos);
 };
 
 

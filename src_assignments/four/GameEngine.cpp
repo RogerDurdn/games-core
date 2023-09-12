@@ -10,7 +10,7 @@ GameEngine::GameEngine(const std::string &path) {
 
 void GameEngine::init(const std::string &path) {
     m_assets.loadFromFile(path);
-    m_window.create(sf::VideoMode(1280, 768), "Definitely Not Mario");
+    m_window.create(sf::VideoMode(1280, 768), "Definitely Not Link");
     m_window.setFramerateLimit(60);
 
     changeScene("MENU", std::make_shared<Scene_Menu>(this), false);
@@ -41,15 +41,6 @@ void GameEngine::sUserInput() {
         if (event.type == sf::Event::Closed) {
             quit();
         }
-//        if (event.type == sf::Event::KeyPressed) {
-//            std::cout << "screenshot saved to" << "test.png" << std::endl;
-//            sf::Texture texture;
-//            texture.create(m_window.getSize().x, m_window.getSize().y);
-//            texture.update(m_window);
-//            if (texture.copyToImage().saveToFile("test.png")) {
-//                std::cout << "screenshot saved to" << "test.png" << std::endl;
-//            }
-//        }
         if (event.type == sf::Event::KeyPressed || event.type == sf::Event::KeyReleased) {
             if (currentScene()->getActionMap().find(event.key.code) == currentScene()->getActionMap().end()) {
                 continue;

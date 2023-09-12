@@ -10,9 +10,8 @@ CLifespan,
 CInput,
 CBoundingBox,
 CAnimation,
-CGravity,
 CState,
-CDraggable
+CHealth
 > ComponentTuple;
 
 class Entity {

@@ -5,12 +5,20 @@
 #include <SFML/Graphics.hpp>
 
 typedef std::string Line;
+struct Intersect{
+    bool isIntersect = false;
+    Vec2 on;
+};
 
 class Physics {
 public:
     bool IsCollision(Vec2 overlap) const;
 
     bool IsIntersect(Line, Line) const;
+
+    Intersect LineIntersect(const Vec2&a, const Vec2&b, const Vec2&c, const Vec2&d);
+
+    bool EntityIntersect(const Vec2&a, const Vec2&b, std::shared_ptr<Entity> e);
 
     bool IsInside(Vec2, Line) const;
 
