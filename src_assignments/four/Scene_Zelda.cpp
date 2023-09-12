@@ -6,6 +6,7 @@
 #include "Components.h"
 #include "Action.h"
 #include <fstream>
+#include <sstream>
 
 #include <iostream>
 
@@ -14,19 +15,10 @@ Scene_Zelda::Scene_Zelda(GameEngine *gameEngine, const std::string &levelPath)
     init(m_levelPath);
 }
 
-bool IsInside(Vec2 pos, std::shared_ptr<Entity> e) {
-    auto ePos = e->getComponent<CTransform>().pos;
-    auto size = e->getComponent<CAnimation>().animation.getSize();
-
-    float dx = fabs(pos.x - ePos.x);
-    float dy = fabs(pos.y - ePos.y);
-    return dx < size.x / 2 && dy < size.y / 2;
-}
-
-
 void Scene_Zelda::init(const std::string &levelPath) {
     registerAction(sf::Keyboard::P, "PAUSE");
     registerAction(sf::Keyboard::Escape, "QUIT");
+    registerAction(sf::Keyboard::Y, "TOGGLE_FOLLOW");
     registerAction(sf::Keyboard::T, "TOGGLE_TEXTURE");
     registerAction(sf::Keyboard::C, "TOGGLE_COLLISION");
     registerAction(sf::Keyboard::G, "TOGGLE_GRID");
@@ -43,16 +35,15 @@ void Scene_Zelda::init(const std::string &levelPath) {
 
 void Scene_Zelda::update() {
     m_entityManager.update();
-    sDrag();
-    sMovement();
-    sLifeSpan();
-    sCollision();
-    sAnimation();
+//    sMovement();
+//    sLifeSpan();
+//    sCollision();
+//    sAnimation();
     sRender();
 }
 
 void Scene_Zelda::sRender() {
-    auto backgroundColor = sf::Color(4, 156, 216);
+    auto backgroundColor = sf::Color(244, 192, 127);
     // color the background darker, so you know that the game is paused
 //    if (!m_paused) {
 //        m_game->window().clear(sf::Color(100, 100, 255));
@@ -117,10 +108,6 @@ void Scene_Zelda::sRender() {
         }
     }
 
-    m_circle.setRadius(4);
-    m_circle.setOrigin(2, 2);
-    m_circle.setFillColor(sf::Color::Red);
-    m_game->window().draw(m_circle);
 }
 
 void Scene_Zelda::sMovement() {
@@ -128,18 +115,16 @@ void Scene_Zelda::sMovement() {
     auto &pT = m_player->getComponent<CTransform>();
     auto &pS = m_player->getComponent<CState>();
     Vec2 velocity(0, pT.velocity.y);
-    if (pI.up && pI.canJump) {
-        velocity.y = m_plyConf.SPEED_JUMP;
-        pI.canJump = false;
-        pS.state = "jumping";
-    }
-    if (pI.left) velocity.x += -m_plyConf.SPEED_X, pT.scale = Vec2(-1, 1);
-    if (pI.right) velocity.x += m_plyConf.SPEED_X, pT.scale = Vec2(1, 1);
+//    if (pI.up && pI.canJump) {
+//        velocity.y = m_plyConf.SPEED_JUMP;
+//        pI.canJump = false;
+//        pS.state = "jumping";
+//    }
+//    if (pI.left) velocity.x += -m_plyConf.SPEED_X, pT.scale = Vec2(-1, 1);
+//    if (pI.right) velocity.x += m_plyConf.SPEED_X, pT.scale = Vec2(1, 1);
     pT.velocity = velocity;
     for (auto e: m_entityManager.getEntities()) {
-        auto &eG = e->getComponent<CGravity>();
         auto &eT = e->getComponent<CTransform>();
-        if (eG.has) eT.velocity.y += eG.gravity;
         if (e->tag() == "player")eT.prevPos = eT.pos;
         eT.pos += eT.velocity;
     }
@@ -161,7 +146,6 @@ void Scene_Zelda::sDoAction(const Action &action) {
             if (actName == "PLAYER_LEFT") playerInput.left = apply;
             if (actName == "PLAYER_UP") playerInput.up = apply;
             if (actName == "PLAYER_SHOOT") {
-                if (apply && playerInput.canShoot) scenePlay->spawnBullet(player);
                 playerInput.canShoot = !apply;
             }
         }
@@ -182,42 +166,25 @@ void Scene_Zelda::sDoAction(const Action &action) {
     }
 
 
-    if (actName == "mouseLeft") {
-        auto pos = posRelativeToWorld(action.pos());
-        std::cout << "pos m: " << pos.x << " " << pos.y << std::endl;
-        for (auto &e: m_entityManager.getEntities()) {
-            auto &eD = e->getComponent<CDraggable>();
-            if (eD.has && IsInside(pos, e)) {
-                eD.isDragged = !eD.isDragged;
-            }
-        }
-    }
-
-    if (actName == "mouseMove") {
-        auto pos = posRelativeToWorld(action.pos());
-        m_circle.setPosition(pos.x, pos.y);
-        m_mouse_point = pos;
-    }
-}
-
-Vec2 Scene_Zelda::posRelativeToWorld(Vec2 pos) {
-    auto view = m_game->window().getView();
-    auto posX = view.getCenter().x - (m_game->window().getSize().x / 2);
-    auto posY = view.getCenter().y - (m_game->window().getSize().y / 2);
-    return Vec2(pos.x + posX, pos.y + posY);
 }
 
 
-void Scene_Zelda::sDrag() {
-    for (auto &e: m_entityManager.getEntities()) {
-        auto &eD = e->getComponent<CDraggable>();
-        if (eD.has && eD.isDragged) {
-            e->getComponent<CTransform>().pos = m_mouse_point;
-        }
-    }
+void Scene_Zelda::sAI(){
+    /*
+     * TODO: Implement Enemy AI
+     * follow behavior
+     * patrol behavior
+     */
 }
 
 void Scene_Zelda::sAnimation() {
+    /*
+     * TODO implement:
+     * player facing direction animation
+     * sword animation based on player facing
+     *  the sword should move if the player changes direction mid swing
+     * destruction of entities with non-repeating finished animations
+     */
     auto &currentAnimation = m_player->getComponent<CAnimation>().animation.getName();
     auto &state = m_player->getComponent<CState>().state;
     if (state != currentAnimation) {
@@ -233,6 +200,8 @@ void Scene_Zelda::sAnimation() {
 }
 
 void Scene_Zelda::sLifeSpan() {
+    // TODO: change to sStatus
+    // implement lifespan and invincibility
     m_currentFrame++;
     for (auto &e: m_entityManager.getEntities()) {
         auto lifeSpan = e->getComponent<CLifespan>();
@@ -254,6 +223,19 @@ void Scene_Zelda::sEnemySpawner() {
 }
 
 void Scene_Zelda::sCollision() {
+
+    /*
+     * TODO Implement:
+     * tile collisions
+     * player - enemy with max calculations
+     * sword - npc
+     * black tile / "teleporting"
+     * entity - heart and life gain logic
+     *
+     * you may want to use helper functions for these behaviors or this function will get long
+     */
+
+
     auto physics = Physics();
     // bullets collision
     for (auto &bullet: m_entityManager.getEntities("bullet")) {
@@ -333,32 +315,16 @@ void Scene_Zelda::sDebug() {
 
 void Scene_Zelda::spawnPlayer() {
     m_player = m_entityManager.addEntity("player");
-    auto &animation = m_game->assets().getAnimation("stand");
+    auto &animation = m_game->assets().getAnimation("StandD");
     m_player->addComponent<CAnimation>(animation, true);
-    m_player->addComponent<CTransform>(
-            gridToMidPixel(m_plyConf.GX, m_plyConf.GY, m_player),
-            Vec2(m_plyConf.SPEED_X, 0), 0); // here we set the position
-    m_player->addComponent<CBoundingBox>(Vec2(m_plyConf.CW, m_plyConf.CH));
-    m_player->addComponent<CGravity>(m_plyConf.GRAVITY);
+    m_player->addComponent<CTransform>(Vec2(m_plyConf.X, m_plyConf.Y),
+            Vec2(m_plyConf.SPEED, m_plyConf.SPEED), 0); // here we set the position
+    m_player->addComponent<CBoundingBox>(Vec2(m_plyConf.CX, m_plyConf.CY));
+    m_player->addComponent<CHealth>(m_plyConf.HEALT, m_plyConf.HEALT);
     m_player->addComponent<CState>();
     m_player->addComponent<CInput>();
 }
 
-
-void Scene_Zelda::spawnBullet(std::shared_ptr<Entity> entity) {
-    auto bulletSpeed = 10.0f;
-    auto bulletDuration = 60;
-    auto &pT = entity->getComponent<CTransform>();
-    auto &pB = entity->getComponent<CBoundingBox>();
-    auto origin = Vec2(pT.pos.x + (pB.halfSize.x * pT.scale.x), pT.pos.y);
-    auto velocity = pT.pos.normalize(Vec2(pT.pos.x + pT.scale.x * m_plyConf.GX, pT.pos.y)) * bulletSpeed;
-
-    auto bullet = m_entityManager.addEntity("bullet");
-    bullet->addComponent<CAnimation>(m_game->assets().getAnimation(m_plyConf.WEAPON), true);
-    bullet->addComponent<CTransform>(origin, velocity, 1);
-    bullet->addComponent<CBoundingBox>(bullet->getComponent<CAnimation>().animation.getSize());
-    bullet->addComponent<CLifespan>(bulletDuration, m_currentFrame);
-}
 
 Vec2 Scene_Zelda::gridToMidPixel(float gridX, float gridY, std::shared_ptr<Entity> entity) {
     auto animSizeMiddle = entity->getComponent<CAnimation>().animation.getSize() / 2;
@@ -368,23 +334,63 @@ Vec2 Scene_Zelda::gridToMidPixel(float gridX, float gridY, std::shared_ptr<Entit
 }
 
 void Scene_Zelda::loadLevel(const std::string &filename) {
+    // TODO: use getPosition middle
+    // all are squares with 64x64 size
     m_entityManager = EntityManager();
     m_entityManager = EntityManager{};
     loadLevelConfig(filename);
 
-    for (auto misc: m_miscConfig) {
-        auto &animation = m_game->assets().getAnimation(misc.NAME_ANI);
-        auto miscEntity = m_entityManager.addEntity(misc.TYPE);
-        miscEntity->addComponent<CAnimation>(animation, true);
-        auto pos = gridToMidPixel(misc.GX, misc.GY, miscEntity);
-        miscEntity->addComponent<CTransform>(pos);
-        if (misc.TYPE != "Dec") {
-            miscEntity->getComponent<CTransform>().prevPos = pos;
-            miscEntity->addComponent<CBoundingBox>(animation.getSize());
-        }
-        if (misc.TYPE == "Tile") miscEntity->addComponent<CDraggable>();
+    for (auto misc: m_tileConfig) {
+//        auto &animation = m_game->assets().getAnimation(misc.NAME_ANI);
+//        auto miscEntity = m_entityManager.addEntity(misc.TYPE);
+//        miscEntity->addComponent<CAnimation>(animation, true);
+//        auto pos = gridToMidPixel(misc.GX, misc.GY, miscEntity);
+//        miscEntity->addComponent<CTransform>(pos);
+//        if (misc.TYPE != "Dec") {
+//            miscEntity->getComponent<CTransform>().prevPos = pos;
+//            miscEntity->addComponent<CBoundingBox>(animation.getSize());
+//        }
     }
     spawnPlayer();
+}
+
+
+Vec2 Scene_Zelda::getPosition(int rx, int ry, int tx, int ty)const{
+    // TODO: Implement that takes room (rx,ry) coordinates
+    // as well as teh tile (tx,ty) coordinate, an returns the Vec2 game world
+    // position of the center of the entity.
+    return Vec2();
+}
+
+
+void Scene_Zelda::sCamera() {
+/*
+ * TODO:
+ * camera view logic
+ * get teh current view, which we sill modify in the if-statement below
+ */
+sf::View view = m_game->window().getView();
+
+if (m_follow){
+    // calculate view for player follow camera
+}else{
+    // calculate view for room-based camera
+}
+
+// then set the window view
+m_game->window().setView(view);
+}
+
+
+void Scene_Zelda::spawnSword(std::shared_ptr<Entity> entity){
+    /*
+     * TODO:
+     * Implement the spawning of the sword, which:
+     * - should be given the appropriate lifespan
+     * - should spawn at the appropriate location based on player's facing direction
+     * - be given a max value of 1
+     * - should play the "Slash" sound
+     */
 }
 
 void Scene_Zelda::drawLine(const Vec2 &p1, const Vec2 &p2) {
@@ -402,25 +408,41 @@ void Scene_Zelda::onEnd() {
 
 
 void Scene_Zelda::loadLevelConfig(const std::string &fileName) {
-    std::string projectPath = std::getenv("MEGA_ASSETS_PATH");
-    std::ifstream configFile(projectPath + "/config/" + fileName + ".txt");
+    std::string projectPath = std::getenv("NOTLINK_ASSETS_PATH");
+    std::ifstream configFile(projectPath + fileName + ".txt");
     if (!configFile.is_open()) {
         std::cerr << "Cannot open asset:" << fileName << std::endl;
         exit(-1);
     }
-    std::string type;
-    while (configFile >> type) {
-        if (type == "Tile" || type == "Dec") {
-            std::string animationName;
-            float GX, GY;
-            configFile >> animationName >> GX >> GY;
-            m_miscConfig.push_back(MiscConfig{type, animationName, GX, GY});
+    std::string type, line;
+    while (std::getline(configFile, line)) {
+        std::istringstream  iss(line);
+        iss >> type;
+        if (type == "Tile") {
+            std::string NAME_ANI;
+            int RX, RY, TX, TY;
+            bool BM, BV;
+            iss >> NAME_ANI >> RX >> RY >> TX >> TY >> BM >> BV;
+            m_tileConfig.push_back(TileConfig{NAME_ANI, RX, RY, TX, TY, BM, BV});
+        }
+        if (type == "NPC") {
+            std::string NAME_ANI, AI;
+            int RX, RY, TX, TY, H, D, PPN, XI, YI;
+            bool BM, BV;
+            float S;
+            iss >> NAME_ANI >> RX >> RY >> TX >> TY >> BM >> BV >> H >> D >> AI >> S;
+            std::vector<Vec2> patrolPositions;
+            if(AI == "Patrol"){
+                while (iss >> XI >> YI) {
+                    patrolPositions.push_back(Vec2(XI,YI));
+                }
+            }
+            m_npcConfig.push_back(NpcConfig{NAME_ANI,AI,RX,RY,TX,TY,H,D,PPN,BM,BV,S,patrolPositions});
         }
         if (type == "Player") {
-            float X, Y, CX, CY, SPEED, MAXSPEED, JUMP, GRAVITY;
-            std::string WEAPON;
-            configFile >> X >> Y >> CX >> CY >> SPEED >> MAXSPEED >> JUMP >> GRAVITY >> WEAPON;
-            m_plyConf = PlayerConfig{X, Y, CX, CY, SPEED, MAXSPEED, JUMP, GRAVITY, WEAPON};
+            float X, Y, CX, CY, SPEED, HEALT;
+            iss >> X >> Y >> CX >> CY >> SPEED >> HEALT;
+            m_plyConf = PlayerConfig{X, Y, CX, CY, SPEED, HEALT, "Sword"};
         }
     }
 }

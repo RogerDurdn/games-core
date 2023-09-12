@@ -9,9 +9,8 @@ Entity::Entity(const size_t id, const std::string &tag) : m_id(id), m_tag(tag) {
             CInput(),
             CBoundingBox(),
             CAnimation(),
-            CGravity(),
             CState(),
-            CDraggable()
+            CHealth()
     );
 }
 

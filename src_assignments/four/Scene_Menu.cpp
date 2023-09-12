@@ -22,11 +22,11 @@ void Scene_Menu::update() {
 }
 
 void Scene_Menu::sRender() {
-    m_game->window().clear(sf::Color(61, 116, 117));
+    m_game->window().clear(sf::Color(101, 103, 100));
     auto &menuText = m_menuText;
     auto &window = m_game->window();
-    auto drawText = [&menuText, &window](const std::string &text, int size, float thick, float posX,
-                                         float posY) -> void {
+    auto drawText = [&menuText, &window]
+            (const std::string &text, int size, float thick, float posX, float posY) -> void {
         menuText.setOutlineThickness(thick);
         menuText.setCharacterSize(size);
         menuText.setPosition(posX, posY);
@@ -34,7 +34,7 @@ void Scene_Menu::sRender() {
         window.draw(menuText);
     };
 
-    drawText("MEGA MARIO", 75, 10, 25, 20);
+    drawText("NoT LinK", 75, 10, 25, 20);
     m_menuText.setPosition(m_menuText.getPosition().x, m_menuText.getPosition().y + 75);
     for (int i = 0; i < std::size(m_levels); i++) {
         auto textLevel = m_levels[i];

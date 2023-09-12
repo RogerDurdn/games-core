@@ -56,11 +56,15 @@ class CBoundingBox : public Component {
 public:
     Vec2 size;
     Vec2 halfSize;
+    bool blockMove = false;
+    bool blockVision = false;
 
     CBoundingBox() {}
 
     CBoundingBox(const Vec2 &s)
             : size(s), halfSize(s.x / 2, s.y / 2) {}
+    CBoundingBox(const Vec2 &s, bool m, bool v)
+            : size(s), halfSize(s.x / 2, s.y / 2), blockMove(m), blockVision(v) {}
 };
 
 class CAnimation : public Component {
@@ -106,5 +110,41 @@ public:
 };
 
 
+class CDamage: public Component{
+public:
+    int damage = 1;
+    CDamage(){}
+    CDamage(int d ): damage(d){}
+};
 
+class CInvincibility: public Component{
+public:
+    int iframes = 0;
+    CInvincibility(){}
+    CInvincibility(int d ): iframes(d){}
+};
 
+class CHealth: public Component{
+public:
+    int max = 1;
+    int current = 1;
+    CHealth(){}
+    CHealth(int d , int c): max(d), current(c){}
+};
+
+class CFollowPlayer: public Component{
+public:
+    Vec2 home = {0,0};
+    float speed = 0;
+    CFollowPlayer(){}
+    CFollowPlayer(Vec2 p, float s ): home(p), speed(s){}
+};
+
+class CPatrol: public Component{
+public:
+    std::vector<Vec2> positions;
+    size_t currentPosition = 0;
+    float speed = 0;
+    CPatrol(){}
+    CPatrol(std::vector<Vec2> pos, float s): positions(pos), speed(s){}
+};
