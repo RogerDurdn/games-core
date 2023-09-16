@@ -25,6 +25,8 @@ public:
 
     void operator-=(const Vec2 &rhs);
 
+    Vec2 operator-=(const float val);
+
     void operator*=(const float val);
 
     void operator/=(const float val);

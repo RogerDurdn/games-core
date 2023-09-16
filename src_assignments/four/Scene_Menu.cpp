@@ -15,6 +15,7 @@ void Scene_Menu::init() {
 
     m_menuText = sf::Text();
     m_menuText.setFont(m_game->assets().getFont("Menu"));
+    m_game->assets().getMusic("MusicTitle").get()->play();
 }
 
 void Scene_Menu::update() {
@@ -57,6 +58,7 @@ void Scene_Menu::sDoAction(const Action &action) {
     if (action.name() == "UP" && i > 0) i--;
     if (action.name() == "DOWN" && i < std::size(m_levels) - 1) i++;
     if (action.name() == "PLAY") {
+        m_game->assets().getMusic("MusicTitle").get()->stop();
         m_game->changeScene("GAME",
                             std::make_shared<Scene_Zelda>(m_game, m_levels[m_selectedMenuIndex]),
                             true);
