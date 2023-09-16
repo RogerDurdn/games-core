@@ -11,7 +11,11 @@ CInput,
 CBoundingBox,
 CAnimation,
 CState,
-CHealth
+CHealth,
+CDamage,
+CPatrol,
+CFollowPlayer,
+CInvincibility
 > ComponentTuple;
 
 class Entity {

@@ -38,6 +38,20 @@ void Assets::loadFromFile(const std::string &path) {
             configFile >> name >> texName >> frameCount >> speed;
             m_animations[name] = Animation(name, m_textures[texName], frameCount, speed);
         }
+        if (type == "Sound") {
+            std::string name, soundPath;
+            configFile >> name >> soundPath;
+            if(name.find("Music") != std::string::npos){
+                auto music = std::make_shared<sf::Music>();
+                handleLoad(music->openFromFile(path + soundPath.c_str()), soundPath);
+                m_music[name] = music;
+            }else{
+                auto buff = sf::SoundBuffer();
+                handleLoad(buff.loadFromFile(path + soundPath.c_str()), soundPath);
+                m_buffers[name] = buff;
+                m_sounds[name] = std::make_shared<sf::Sound>((m_buffers[name]));
+            }
+        }
     }
 }
 
@@ -71,8 +85,11 @@ void Assets::addSound(const std::string &name, const std::string &path) const {
 
 }
 
-
-const sf::Sound &Assets::getSound(const std::string &name) const {
+const std::shared_ptr<sf::Sound> Assets::getSound(const std::string &name) const {
     return m_sounds.at(name);
+}
+
+const std::shared_ptr<sf::Music> Assets::getMusic(const std::string &name) const {
+    return m_music.at(name);
 }
 

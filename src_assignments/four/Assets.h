@@ -9,7 +9,9 @@
 class Assets {
     std::map<std::string, sf::Texture> m_textures;
     std::map<std::string, Animation> m_animations;
-    std::map<std::string, sf::Sound> m_sounds;
+    std::map<std::string, sf::SoundBuffer> m_buffers;
+    std::map<std::string, std::shared_ptr<sf::Sound>> m_sounds;
+    std::map<std::string, std::shared_ptr<sf::Music>> m_music;
     std::map<std::string, sf::Font> m_fonts;
 
 public:
@@ -29,7 +31,9 @@ public:
 
     const Animation getAnimation(const std::string &name) const;
 
-    const sf::Sound &getSound(const std::string &name) const;
+    const std::shared_ptr<sf::Music> getMusic(const std::string &name) const;
+
+    const std::shared_ptr<sf::Sound> getSound(const std::string &name) const;
 
     const sf::Font &getFont(const std::string &name) const;
 };

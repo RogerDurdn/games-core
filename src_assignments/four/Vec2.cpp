@@ -67,3 +67,7 @@ float Vec2::length() const {
 Vec2 Vec2::distance(const Vec2 &rhs) const {
     return Vec2(rhs.x - x, rhs.y - y);
 }
+
+Vec2 Vec2::operator-=(const float val){
+    return Vec2(x - val, y - val);
+}

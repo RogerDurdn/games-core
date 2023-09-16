@@ -23,6 +23,10 @@ public:
             : pos(p) {
     }
 
+    CTransform(const Vec2 &p, const Vec2 &s)
+            : pos(p), scale(s) {
+    }
+
     CTransform(const Vec2 &p, const Vec2 &v, float a)
             : pos(p), velocity(v), angle(a) {
     }
@@ -45,9 +49,7 @@ public:
     bool left = false;
     bool right = false;
     bool down = false;
-    bool shoot = false;
-    bool canShoot = true;
-    bool canJump = true;
+    bool canAttack = true;
 
     CInput() {}
 };
@@ -81,32 +83,18 @@ public:
 
 };
 
-class CGravity : public Component {
-public:
-    float gravity = 0;
-
-    CGravity() {}
-
-    CGravity(float g) : gravity(g) {}
-
-};
-
 class CState : public Component {
 public:
-    std::string state = "jumping";
+    std::string state;
+    std::string prevState;
 
     CState() {}
 
-    CState(const std::string &s) : state(s) {}
-};
-
-
-class CDraggable : public Component {
-
-public:
-    bool isDragged = false;
-
-    CDraggable() {}
+    CState(const std::string &s) : state(s), prevState(s) {}
+    void setState(const std::string &s){
+        prevState= state;
+        state = s;
+    }
 };
 
 
@@ -120,8 +108,9 @@ public:
 class CInvincibility: public Component{
 public:
     int iframes = 0;
+    int current = 0;
     CInvincibility(){}
-    CInvincibility(int d ): iframes(d){}
+    CInvincibility(int d, int c ): iframes(d), current(c){}
 };
 
 class CHealth: public Component{

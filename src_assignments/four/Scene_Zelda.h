@@ -4,6 +4,7 @@
 #include <map>
 #include <memory>
 #include "EntityManager.h"
+#include "Physics.h"
 
 
 class Scene_Zelda : public Scene {
@@ -27,20 +28,21 @@ class Scene_Zelda : public Scene {
         std::vector<Vec2> PatrolPositions;
     };
 
-
 protected:
     std::shared_ptr<Entity> m_player;
     std::string m_levelPath;
     PlayerConfig m_plyConf;
+    std::vector<Vec2> m_blackHoles;
     std::vector<TileConfig> m_tileConfig;
     std::vector<NpcConfig> m_npcConfig;
     bool m_drawTextures = true;
     bool m_drawCollision = false;
-    //TODO: change for follow
     bool m_drawGrid = false;
     bool m_follow = false;
+    bool m_debug = false;
     const Vec2 m_gridSize = {64, 64};
     sf::Text m_gridText;
+    Physics physics;
 
     Scene_Zelda();
 
@@ -52,16 +54,13 @@ public:
 
     void update();
 
-    // Systems
     void sAnimation();
 
     void onEnd();
 
     void sMovement();
 
-    void sEnemySpawner();
-
-    void sLifeSpan();
+    void sStatus();
 
     void sCollision();
 
@@ -69,19 +68,19 @@ public:
 
     void sDoAction(const Action &action);
 
-    void sDebug();
-
     void sAI();
 
     void sCamera();
+
+    void spawnPlayer(Vec2 pos);
 
     void spawnPlayer();
 
     void spawnSword(std::shared_ptr<Entity> entity);
 
-    Vec2 gridToMidPixel(float gridX, float gridY, std::shared_ptr<Entity> entity);
+    Vec2 getPosition(int rx, int ry, int tx, int ty,std::shared_ptr<Entity> entity)const;
 
-    Vec2 getPosition(int rx, int ry, int tx, int ty)const;
+    Vec2 getPos(std::shared_ptr<Entity> entity, Vec2 nextPos);
 
     void loadLevel(const std::string &filename);
 

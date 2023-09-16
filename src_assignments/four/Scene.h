@@ -46,11 +46,11 @@ public:
         this->m_actionMap[inputKey] = actionName;
     }
 
-    size_t width() const {
+    int width() const {
         return 1280;
     }
 
-    size_t height() const {
+    int height() const {
         return 768;
     }
 
