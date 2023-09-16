@@ -29,3 +29,6 @@ development with C++.
 
 ![threeMove](https://github.com/RogerDurdn/games-core/assets/35942425/a926a163-875b-4993-ac9f-6ab8306b8a36)
 
+### Assigment Four
+
+![notZ](https://github.com/RogerDurdn/games-core/assets/35942425/0a5d0954-c42f-4c66-959a-8db2b38758fb)
