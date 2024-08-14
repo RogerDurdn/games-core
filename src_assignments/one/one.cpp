@@ -84,7 +84,7 @@ class ItemsBuilder {
         int fontSize, r,g,b;
         fileIn >> fontPath >> fontSize >> r >> g >> b;
         sf::Font fontLoaded;
-        if (!fontLoaded.loadFromFile(std::getenv(fontPath.c_str()))) {
+        if (!fontLoaded.loadFromFile(fontPath)) {
             std::cerr << "Could not load font" << std::endl;
             exit(-1);
         }
@@ -151,7 +151,7 @@ public:
 
 int main(){
     auto builder = std::make_unique<ItemsBuilder>();
-    builder->buildItemsFrom(std::getenv("ONE_CONFIG"));
+    builder->buildItemsFrom("../src_assignments/one/configs.txt");
     auto window = builder->getWindow();
     auto shapesWrapper = builder->getShapes();
     while(window->isOpen()){
